@@ -1,11 +1,11 @@
 :root{
-  --bg:#0b1220;
+  --bg:#0d1023;
   --panel:#111b2e;
   --panel2:#0f172a;
-  --text:#e6eefc;
+  --text:#d9e6ff;
   --muted:#a7b3d1;
-  --primary:#4f7cff;
-  --primary2:#2f5df2;
+  --primary:#0096ff;
+  --primary2:#00c8ff;
   --border:rgba(255,255,255,.12);
   --shadow: 0 10px 30px rgba(0,0,0,.35);
   --radius:16px;
@@ -15,8 +15,8 @@
 *{ box-sizing:border-box; }
 body{
   margin:0;
-  background: radial-gradient(1200px 600px at 20% 0%, rgba(79,124,255,.25), transparent 55%),
-              radial-gradient(900px 500px at 100% 40%, rgba(47,93,242,.18), transparent 50%),
+  background: radial-gradient(1200px 600px at 20% 0%, rgba(0,150,255,.25), transparent 55%),
+              radial-gradient(900px 500px at 100% 40%, rgba(0,200,255,.18), transparent 50%),
               var(--bg);
   color:var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -28,46 +28,55 @@ body{
 }
 
 .site-header{
-  padding: 18px 0 10px;
+  padding: 10px 0 8px;
 }
-.banner{
-  border:1px solid var(--border);
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, rgba(79,124,255,.18), rgba(17,27,46,.75));
-  box-shadow: var(--shadow);
-}
-.banner-inner{
-  padding: 18px 18px;
-}
-.brand{
+
+/* Bandeau assemblé : logo + bandeau.jpg */
+.header{
   display:flex;
   align-items:center;
-  gap:14px;
+  width: 100%;
+  overflow: hidden;
+  background: #000;
+  border-bottom: 3px solid #4da6ff;
 }
-.brand-logo{
-  width: 44px;
-  height:44px;
-  border-radius: 12px;
-  border:1px solid var(--border);
-  background: rgba(0,0,0,.18);
+.header-logo{
+  display:flex;
+  align-items:center;
+  height: 240px;
+}
+.header-logo img{
+  height: 240px;
+  width: auto;
+  object-fit: contain;
+  display:block;
+}
+.header-logo-fallback{
   display:flex;
   align-items:center;
   justify-content:center;
-  overflow:hidden;
+  height: 240px;
+  padding: 0 16px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  color: var(--text);
+  white-space: nowrap;
 }
-.brand-logo img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+.header-banner{
+  flex-grow: 1;
+  height: 240px;
+  background-image: url("bandeau.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
-.brand-fallback{
-  font-weight:800;
-  letter-spacing:.2px;
-}
-.brand-subtitle{
-  color:var(--muted);
-  font-size: 13px;
-  margin-top: 2px;
+
+@media (max-width: 600px){
+  .header{ border-bottom-width: 2px; }
+  .header-logo{ height: 160px; }
+  .header-logo img{ height: 160px; }
+  .header-logo-fallback{ height: 160px; }
+  .header-banner{ height: 180px; }
 }
 
 .navbar{
@@ -85,10 +94,16 @@ body{
   border-radius: 999px;
   color: var(--text);
   background: rgba(0,0,0,.10);
+  transition: 0.2s;
 }
 .nav-link.active{
-  background: rgba(79,124,255,.18);
-  border-color: rgba(79,124,255,.45);
+  background: rgba(0,150,255,.18);
+  border-color: rgba(0,150,255,.45);
+}
+.nav-link:hover{
+  transform: scale(1.03);
+  border-color: rgba(0,150,255,.65);
+  box-shadow: 0 0 20px rgba(0,200,255,.25);
 }
 
 .section{
@@ -180,13 +195,16 @@ body{
   padding: 10px 14px;
   border-radius: 12px;
   font-weight: 800;
+  transition: 0.2s;
 }
 .btn:hover{
-  border-color: rgba(79,124,255,.45);
+  border-color: rgba(0,150,255,.45);
+  transform: scale(1.02);
+  box-shadow: 0 0 22px rgba(0,200,255,.18);
 }
 .btn-primary{
-  background: rgba(79,124,255,.22);
-  border-color: rgba(79,124,255,.5);
+  background: rgba(0,150,255,.22);
+  border-color: rgba(0,150,255,.5);
 }
 .btn-sm{
   padding: 8px 10px;
@@ -219,6 +237,83 @@ body{
   font-weight: 800;
   font-size: 12px;
   margin-bottom: 8px;
+}
+
+/* =========================
+   Accueil "temp" : tiles tech
+   ========================= */
+.intro{
+  max-width: 800px;
+  margin: 40px auto;
+  font-size: 1.3em;
+  line-height: 1.5;
+  padding: 0 20px;
+  color: #d9e6ff;
+  text-align: center;
+}
+
+.tiles{
+  display:flex;
+  justify-content:center;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-bottom: 60px;
+}
+.tile{
+  text-decoration: none;
+  color: var(--text);
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+}
+.tile img{
+  width: 170px;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 150, 255, 0.6);
+  transition: 0.3s;
+}
+.tile img:hover{
+  transform: scale(1.08);
+  box-shadow: 0 0 25px rgba(0, 200, 255, 1);
+}
+.tile-placeholder{
+  width: 170px;
+  height: 170px;
+  border-radius: 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color: #7fc8ff;
+  background: rgba(0,0,0,.15);
+  box-shadow: 0 0 15px rgba(0, 150, 255, 0.6);
+  transition: 0.3s;
+}
+.tile:hover .tile-placeholder{
+  transform: scale(1.04);
+  box-shadow: 0 0 25px rgba(0, 200, 255, 1);
+}
+.tile-title{
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #7fc8ff;
+}
+.tile-subtitle{
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.98em;
+  text-align: center;
+  max-width: 170px;
+  line-height: 1.25;
+}
+
+@media (max-width: 600px){
+  .intro{ margin-top: 24px; }
+  .tiles{ gap: 20px; }
+  .tile img, .tile-placeholder{ width: 140px; height: 140px; }
+  .tile-title{ font-size: 1em; }
 }
 .pill-lg{ margin-bottom:10px; }
 
@@ -278,8 +373,8 @@ body{
 }
 .tab.active{
   color: var(--text);
-  border-color: rgba(79,124,255,.5);
-  background: rgba(79,124,255,.18);
+  border-color: rgba(0,150,255,.5);
+  background: rgba(0,150,255,.18);
 }
 
 .detail{

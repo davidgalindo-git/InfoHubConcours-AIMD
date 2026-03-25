@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>infohub</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0d1023; /* bleu nuit / tech */
+            color: white;
+            text-align: center;
+        }
+
+
+        /* Bandeau composé */
+        .header {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            overflow: hidden;
+            background: #000; /* optionnel */
+            border-bottom: 3px solid #4da6ff;
+        }
+
+        .header-logo img {
+            height: 240px;  /* tu peux ajuster */
+            width: auto;
+        }
+
+        .header-banner {
+            flex-grow: 1;
+            height: 240px; /* même hauteur que le logo */
+            background-image: url("bandeau.jpg");
+            background-size: cover;
+            background-position: center;
+        }
+
+
+        /* Texte d’intro */
+        .intro {
+            max-width: 800px;
+            margin: 40px auto;
+            font-size: 1.3em;
+            line-height: 1.5;
+            padding: 0 20px;
+            color: #d9e6ff; /* bleu très clair */
+        }
+
+        /* Conteneur des 3 liens */
+        .tiles {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+        }
+
+        .tile {
+            text-decoration: none;
+            color: white;
+        }
+
+        .tile img {
+            width: 170px;
+            height: 170px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.6); /* effet néon bleu */
+            transition: 0.3s;
+        }
+
+        .tile img:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 25px rgba(0, 200, 255, 1);
+        }
+
+        .tile-title {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #7fc8ff;
+        }
+    </style>
+</head>
+
+<body>
+
+  
+    <!-- Bandeau assemblé -->
+    <div class="header">
+        <div class="header-logo">
+            <img src="logo.png" alt="Logo">
+        </div>
+
+        <div class="header-banner"></div>
+    </div>
+
+
+    <div class="intro">
+        <p>Bienvenue</p>
+        <p>Vous êtes sur infohub.mycpnv.ch, <br> la plateforme de partage de la section info du CPNV ! </p> 
+        </p>En attendant la mise en ligne du site complet, vous pouvez accéder aux principales sections ci‑dessous.</p>
+        <p>Contact: CPNV_Infohub@eduvaud.ch</p>
+    </div>
+
+    <div class="tiles">
+
+        <!-- Lien 1 : Concours du mois -->
+        <a class="tile" href="concours.pdf" target="_blank">
+            <img src="concours.jpg" alt="Concours du mois">
+            <div class="tile-title">Le concours du mois</div>
+        </a>
+
+        <!-- Lien 2 -->
+        <a class="tile" href="news.pdf" target="_blank">
+            <img src="news.jpg" alt="Les news">
+            <div class="tile-title">Les news</div>
+        </a>
+
+        <!-- Lien 3 -->
+        <a class="tile" href="annonces.pdf" target="_blank">
+            <img src="annonces.jpg" alt="Les annonces">
+            <div class="tile-title">Les annonces</div>
+        </a>
+        
+        <!-- Lien 4 -->
+        <a class="tile" href="pubs.pdf" target="_blank">
+            <img src="pubs.jpg" alt="Les pubs">
+            <div class="tile-title">Les pubs</div>
+        </a>
+    </div>
+    <div class="tiles">
+        <a class="tile" href="NEWSLETTER_MARS_2026.pdf" target="_blank">
+            <div class="tile-title">Newsletter complète</div>
+        </a>
+    </div>
+
+</body>
+</html>

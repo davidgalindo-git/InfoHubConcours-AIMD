@@ -5,7 +5,6 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/lib/db.php';
 require_once __DIR__ . '/lib/markdown.php';
 require_once __DIR__ . '/lib/repositories.php';
-require_once __DIR__ . '/lib/agent_logger.php';
 
 function h(string $s): string
 {
@@ -16,10 +15,6 @@ $route = $_GET['route'] ?? 'home';
 
 // Paramètres ID (pour pages détails)
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
-
-// #region agent log
-agent_log('C', 'index.php:route', 'Route dispatch start', ['route' => $route, 'id' => $id], 'pre');
-// #endregion
 
 try {
   switch ($route) {
@@ -72,22 +67,6 @@ try {
       break;
   }
 } catch (Throwable $e) {
-  // #region agent log
-  agent_log(
-    'A',
-    'index.php:catch',
-    'Unhandled exception during request',
-    [
-      'route' => $route,
-      'id' => $id,
-      'errorMessage' => $e->getMessage(),
-      'errorCode' => $e->getCode(),
-      'file' => $e->getFile(),
-      'line' => $e->getLine(),
-    ],
-    'pre'
-  );
-  // #endregion
   http_response_code(500);
   require __DIR__ . '/pages/server_error.php';
 }

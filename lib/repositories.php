@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/markdown.php';
-require_once __DIR__ . '/agent_logger.php';
 
 // Catégories annonces (slugs)
 const ANNOUNCEMENT_CATEGORIES = [
@@ -193,87 +192,16 @@ function getLatestAds(int $limit): array
 
 function getAdsList(int $limit, int $offset = 0): array
 {
-  // #region agent log
-  agent_log(
-    'A',
-    'lib/repositories.php:getAdsList',
-    'Query ads list start',
-    ['limit' => $limit, 'offset' => $offset],
-    'pre'
-  );
-  // #endregion
-
-  try {
-    $stmt = db()->prepare("SELECT * FROM ads ORDER BY posted_at DESC LIMIT :lim OFFSET :off");
-    $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
-    $stmt->bindValue(':off', $offset, PDO::PARAM_INT);
-    $stmt->execute();
-    $rows = $stmt->fetchAll();
-
-    // #region agent log
-    agent_log(
-      'A',
-      'lib/repositories.php:getAdsList',
-      'Query ads list success',
-      ['rowsCount' => count($rows)],
-      'pre'
-    );
-    // #endregion
-
-    return $rows;
-  } catch (Throwable $e) {
-    // #region agent log
-    agent_log(
-      'A',
-      'lib/repositories.php:getAdsList',
-      'Query ads list failed',
-      ['errorMessage' => $e->getMessage(), 'errorCode' => $e->getCode()],
-      'pre'
-    );
-    // #endregion
-    throw $e;
-  }
+  $stmt = db()->prepare("SELECT * FROM ads ORDER BY posted_at DESC LIMIT :lim OFFSET :off");
+  $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+  $stmt->bindValue(':off', $offset, PDO::PARAM_INT);
+  $stmt->execute();
+  return $stmt->fetchAll();
 }
 
 function countAds(): int
 {
-  // #region agent log
-  agent_log(
-    'A',
-    'lib/repositories.php:countAds',
-    'Query ads count start',
-    [],
-    'pre'
-  );
-  // #endregion
-
-  try {
-    $row = db()->query("SELECT COUNT(*) AS c FROM ads")->fetch();
-    $c = (int)($row['c'] ?? 0);
-
-    // #region agent log
-    agent_log(
-      'A',
-      'lib/repositories.php:countAds',
-      'Query ads count success',
-      ['count' => $c],
-      'pre'
-    );
-    // #endregion
-
-    return $c;
-  } catch (Throwable $e) {
-    // #region agent log
-    agent_log(
-      'A',
-      'lib/repositories.php:countAds',
-      'Query ads count failed',
-      ['errorMessage' => $e->getMessage(), 'errorCode' => $e->getCode()],
-      'pre'
-    );
-    // #endregion
-    throw $e;
-  }
+  return (int)db()->query("SELECT COUNT(*) AS c FROM ads")->fetch()['c'];
 }
 
 function getAdById(int $id): ?array

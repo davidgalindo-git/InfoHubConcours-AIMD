@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/agent_logger.php';
 
 /**
  * Connexion PDO (singleton).
@@ -27,35 +28,29 @@ function db(): PDO
     ]);
 
     // #region agent log
-    $logFile = dirname(__DIR__) . '/debug-0c7d6b.log';
-    file_put_contents($logFile, json_encode([
-      'sessionId' => '0c7d6b',
-      'runId' => 'pre',
-      'hypothesisId' => 'B',
-      'location' => 'lib/db.php:db',
-      'message' => 'PDO connection established',
-      'data' => ['DB_HOST' => DB_HOST, 'DB_PORT' => DB_PORT, 'DB_NAME' => DB_NAME],
-      'timestamp' => (int)(microtime(true) * 1000),
-    ], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+    agent_log(
+      'B',
+      'lib/db.php:db',
+      'PDO connection established',
+      ['DB_HOST' => DB_HOST, 'DB_PORT' => DB_PORT, 'DB_NAME' => DB_NAME],
+      'pre'
+    );
     // #endregion
   } catch (Throwable $e) {
     // #region agent log
-    $logFile = dirname(__DIR__) . '/debug-0c7d6b.log';
-    file_put_contents($logFile, json_encode([
-      'sessionId' => '0c7d6b',
-      'runId' => 'pre',
-      'hypothesisId' => 'B',
-      'location' => 'lib/db.php:db',
-      'message' => 'PDO connection failed',
-      'data' => [
+    agent_log(
+      'B',
+      'lib/db.php:db',
+      'PDO connection failed',
+      [
         'errorMessage' => $e->getMessage(),
         'errorCode' => $e->getCode(),
         'DB_HOST' => DB_HOST,
         'DB_PORT' => DB_PORT,
         'DB_NAME' => DB_NAME,
       ],
-      'timestamp' => (int)(microtime(true) * 1000),
-    ], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+      'pre'
+    );
     // #endregion
     throw $e;
   }

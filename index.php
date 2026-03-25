@@ -5,6 +5,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/lib/db.php';
 require_once __DIR__ . '/lib/markdown.php';
 require_once __DIR__ . '/lib/repositories.php';
+require_once __DIR__ . '/lib/agent_logger.php';
 
 function h(string $s): string
 {
@@ -17,16 +18,7 @@ $route = $_GET['route'] ?? 'home';
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
 // #region agent log
-$logFile = __DIR__ . '/debug-0c7d6b.log';
-file_put_contents($logFile, json_encode([
-  'sessionId' => '0c7d6b',
-  'runId' => 'pre',
-  'hypothesisId' => 'C',
-  'location' => 'index.php:route',
-  'message' => 'Route dispatch start',
-  'data' => ['route' => $route, 'id' => $id],
-  'timestamp' => (int)(microtime(true) * 1000),
-], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+agent_log('C', 'index.php:route', 'Route dispatch start', ['route' => $route, 'id' => $id], 'pre');
 // #endregion
 
 try {
@@ -81,13 +73,11 @@ try {
   }
 } catch (Throwable $e) {
   // #region agent log
-  file_put_contents($logFile, json_encode([
-    'sessionId' => '0c7d6b',
-    'runId' => 'pre',
-    'hypothesisId' => 'A',
-    'location' => 'index.php:catch',
-    'message' => 'Unhandled exception during request',
-    'data' => [
+  agent_log(
+    'A',
+    'index.php:catch',
+    'Unhandled exception during request',
+    [
       'route' => $route,
       'id' => $id,
       'errorMessage' => $e->getMessage(),
@@ -95,8 +85,8 @@ try {
       'file' => $e->getFile(),
       'line' => $e->getLine(),
     ],
-    'timestamp' => (int)(microtime(true) * 1000),
-  ], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+    'pre'
+  );
   // #endregion
   http_response_code(500);
   require __DIR__ . '/pages/server_error.php';

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/markdown.php';
+require_once __DIR__ . '/agent_logger.php';
 
 // Catégories annonces (slugs)
 const ANNOUNCEMENT_CATEGORIES = [
@@ -193,16 +194,13 @@ function getLatestAds(int $limit): array
 function getAdsList(int $limit, int $offset = 0): array
 {
   // #region agent log
-  $logFile = dirname(__DIR__) . '/debug-0c7d6b.log';
-  file_put_contents($logFile, json_encode([
-    'sessionId' => '0c7d6b',
-    'runId' => 'pre',
-    'hypothesisId' => 'A',
-    'location' => 'lib/repositories.php:getAdsList',
-    'message' => 'Query ads list start',
-    'data' => ['limit' => $limit, 'offset' => $offset],
-    'timestamp' => (int)(microtime(true) * 1000),
-  ], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+  agent_log(
+    'A',
+    'lib/repositories.php:getAdsList',
+    'Query ads list start',
+    ['limit' => $limit, 'offset' => $offset],
+    'pre'
+  );
   // #endregion
 
   try {
@@ -213,29 +211,25 @@ function getAdsList(int $limit, int $offset = 0): array
     $rows = $stmt->fetchAll();
 
     // #region agent log
-    file_put_contents($logFile, json_encode([
-      'sessionId' => '0c7d6b',
-      'runId' => 'pre',
-      'hypothesisId' => 'A',
-      'location' => 'lib/repositories.php:getAdsList',
-      'message' => 'Query ads list success',
-      'data' => ['rowsCount' => count($rows)],
-      'timestamp' => (int)(microtime(true) * 1000),
-    ], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+    agent_log(
+      'A',
+      'lib/repositories.php:getAdsList',
+      'Query ads list success',
+      ['rowsCount' => count($rows)],
+      'pre'
+    );
     // #endregion
 
     return $rows;
   } catch (Throwable $e) {
     // #region agent log
-    file_put_contents($logFile, json_encode([
-      'sessionId' => '0c7d6b',
-      'runId' => 'pre',
-      'hypothesisId' => 'A',
-      'location' => 'lib/repositories.php:getAdsList',
-      'message' => 'Query ads list failed',
-      'data' => ['errorMessage' => $e->getMessage(), 'errorCode' => $e->getCode()],
-      'timestamp' => (int)(microtime(true) * 1000),
-    ], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+    agent_log(
+      'A',
+      'lib/repositories.php:getAdsList',
+      'Query ads list failed',
+      ['errorMessage' => $e->getMessage(), 'errorCode' => $e->getCode()],
+      'pre'
+    );
     // #endregion
     throw $e;
   }
@@ -244,16 +238,13 @@ function getAdsList(int $limit, int $offset = 0): array
 function countAds(): int
 {
   // #region agent log
-  $logFile = dirname(__DIR__) . '/debug-0c7d6b.log';
-  file_put_contents($logFile, json_encode([
-    'sessionId' => '0c7d6b',
-    'runId' => 'pre',
-    'hypothesisId' => 'A',
-    'location' => 'lib/repositories.php:countAds',
-    'message' => 'Query ads count start',
-    'data' => new stdClass(),
-    'timestamp' => (int)(microtime(true) * 1000),
-  ], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+  agent_log(
+    'A',
+    'lib/repositories.php:countAds',
+    'Query ads count start',
+    [],
+    'pre'
+  );
   // #endregion
 
   try {
@@ -261,29 +252,25 @@ function countAds(): int
     $c = (int)($row['c'] ?? 0);
 
     // #region agent log
-    file_put_contents($logFile, json_encode([
-      'sessionId' => '0c7d6b',
-      'runId' => 'pre',
-      'hypothesisId' => 'A',
-      'location' => 'lib/repositories.php:countAds',
-      'message' => 'Query ads count success',
-      'data' => ['count' => $c],
-      'timestamp' => (int)(microtime(true) * 1000),
-    ], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+    agent_log(
+      'A',
+      'lib/repositories.php:countAds',
+      'Query ads count success',
+      ['count' => $c],
+      'pre'
+    );
     // #endregion
 
     return $c;
   } catch (Throwable $e) {
     // #region agent log
-    file_put_contents($logFile, json_encode([
-      'sessionId' => '0c7d6b',
-      'runId' => 'pre',
-      'hypothesisId' => 'A',
-      'location' => 'lib/repositories.php:countAds',
-      'message' => 'Query ads count failed',
-      'data' => ['errorMessage' => $e->getMessage(), 'errorCode' => $e->getCode()],
-      'timestamp' => (int)(microtime(true) * 1000),
-    ], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+    agent_log(
+      'A',
+      'lib/repositories.php:countAds',
+      'Query ads count failed',
+      ['errorMessage' => $e->getMessage(), 'errorCode' => $e->getCode()],
+      'pre'
+    );
     // #endregion
     throw $e;
   }

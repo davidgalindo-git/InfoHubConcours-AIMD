@@ -16,6 +16,19 @@ $route = $_GET['route'] ?? 'home';
 // Paramètres ID (pour pages détails)
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
+// #region agent log
+$logFile = __DIR__ . '/debug-0c7d6b.log';
+file_put_contents($logFile, json_encode([
+  'sessionId' => '0c7d6b',
+  'runId' => 'pre',
+  'hypothesisId' => 'C',
+  'location' => 'index.php:route',
+  'message' => 'Route dispatch start',
+  'data' => ['route' => $route, 'id' => $id],
+  'timestamp' => (int)(microtime(true) * 1000),
+], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+// #endregion
+
 try {
   switch ($route) {
     case 'home':
@@ -67,6 +80,24 @@ try {
       break;
   }
 } catch (Throwable $e) {
+  // #region agent log
+  file_put_contents($logFile, json_encode([
+    'sessionId' => '0c7d6b',
+    'runId' => 'pre',
+    'hypothesisId' => 'A',
+    'location' => 'index.php:catch',
+    'message' => 'Unhandled exception during request',
+    'data' => [
+      'route' => $route,
+      'id' => $id,
+      'errorMessage' => $e->getMessage(),
+      'errorCode' => $e->getCode(),
+      'file' => $e->getFile(),
+      'line' => $e->getLine(),
+    ],
+    'timestamp' => (int)(microtime(true) * 1000),
+  ], JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
+  // #endregion
   http_response_code(500);
   require __DIR__ . '/pages/server_error.php';
 }

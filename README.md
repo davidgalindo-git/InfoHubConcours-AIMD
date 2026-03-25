@@ -1,9 +1,8 @@
-<<<<<<< HEAD
 # InfoHub (PHP + SQL)
 
 ## Objectif
 Plateforme interne (V1) pour élèves/enseignants de la section informatique :
-- Accueil (bandeau, concours du mois, 2 actualités “à la une”, 2 annonces récentes, 2 pubs récentes)
+- Accueil (bandeau, concours du mois, 2 actualités "à la une", 2 annonces récentes, 2 pubs récentes)
 - Liste + détails des **actualités**
 - Liste + détails des **annonces** (filtre par catégories)
 - Liste + détails des **pubs**
@@ -34,23 +33,18 @@ Le dossier `admin/` contient une interface minimale (login + création + suppres
 
 ## 3) Lancer le site
 Ouvre :
-- `http://localhost/…/InfoHub/index.php?route=home`
+- `http://localhost/.../InfoHub/index.php?route=home`
 
 ## Images (optionnel)
 Les champs `image_path` attendent un chemin (ex. `assets/mon-image.jpg`).
 Si tu n’as pas d’images, le site fonctionne quand même (cartes sans image).
 
 ## Markdown
-Le site supporte un Markdown “simple” (titres `#`, gras `**`, italique `*`, liens `[t](https://...)`, code inline `` `code` ``) via `lib/markdown.php`.
-
-=======
-# InfoHubConcours-AIMD
-Site du concours d'InfoHub
+Le site supporte un Markdown "simple" (titres `#`, gras `**`, italique `*`, liens `[t](https://...)`, code inline ``code``) via `lib/markdown.php`.
 
 ## Membres du groupe
-SI-CA2a:  
-Anthony Simond  
-Imad ElKhattabi  
-Mouldi Achouri  
-David Galindo  
->>>>>>> ab45cda1e898aaa1e340b6fe64d48c7a093075c5
+SI-CA2a :
+- Anthony Simond
+- Imad ElKhattabi
+- Mouldi Achouri
+- David Galindo

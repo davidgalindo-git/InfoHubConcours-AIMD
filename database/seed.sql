@@ -26,3 +26,7 @@ INSERT INTO ads (title, content, image_path, link_url, posted_at) VALUES
 ('Service de tutorat', 'Besoin d’aide pour réussir ? Contacte-nous via le lien ci-dessous.', NULL, 'https://example.com', '2026-03-23 09:00:00'),
 ('Atelier cybersécurité', 'Rejoignez notre session découverte : bonnes pratiques et CTF.', NULL, NULL, '2026-03-20 12:00:00');
 
+INSERT INTO pubs (title, content, image_path, link_url, posted_at) VALUES
+('Partenariat : stage dev web (CPNV Info)', 'La CPNV Info propose des opportunités de stage autour du développement web. Contactez-nous via le lien ci-dessous.', NULL, 'https://example.com', '2026-03-24 10:30:00'),
+('Campagne recrutement : section informatique', 'Intéressé(e) par la section informatique ? Découvrez les prochaines sessions et rejoignez l’équipe. Infos via le lien.', NULL, 'https://example.com', '2026-03-23 18:00:00');
+

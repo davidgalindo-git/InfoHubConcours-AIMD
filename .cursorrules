@@ -1,0 +1,40 @@
+# InfoHub Project Rules (.cursorrules)
+
+## Project Context
+You are an expert full-stack developer working on **InfoHub**, a web platform for the CPNV Info association. The site is a central hub for students and teachers of the IT section.
+
+## Technical Stack Constraints
+- **Language:** PHP (mandatory).
+- **Database:** MySQL.
+- **Frontend:** Responsive Design (Mobile-first).
+- **Hosting:** Must be compatible with Swisscenter (infohub.mycpnv.ch).
+
+## Core Business Logic
+### 1. Authentication
+- Implementation: Register/Login system with hashed passwords.
+- Future-proofing: Design to eventually allow CPNV SSO (eduvaud.ch).
+
+### 2. Modules & Features
+- **News (Actualités):** Image upload + Text (Simple or Markdown).
+- **Concours du mois:** Special news item or dedicated entity featured on the homepage.
+- **Ads (Annonces):** - Categories: À vendre, À donner, Covoiturage, Demande d'aide, Petits boulots.
+    - Fields: Image, description, category, price (optional), contact info, pub date, expiry date (7 days default), status (visible/hidden).
+    - Interaction: Discussion/comments section under each ad.
+- **Pubs:** Two most recent ads/pubs featured at the bottom of the homepage.
+
+### 3. Roles & Permissions
+- **Users (Students/Teachers):** Can submit news, submit ads, and comment.
+- **Admins:** Must validate/refuse all user submissions before they go live. Can hide/reactivate content and post directly.
+
+## UI/UX Requirements (Homepage Structure)
+- Header: Banner with image and logo.
+- Main: Featured "Concours du mois".
+- News: Preview of the 2 latest/featured articles.
+- Ads: Preview of the 2 latest/featured announcements.
+- Footer: 2 latest "Pubs" (special ads).
+- Navigation: Menu for News, Ads, and Pubs.
+
+## Implementation Guidelines
+- Ensure all user inputs are sanitized (SQL Injection & XSS protection).
+- Follow PSR coding standards for PHP.
+- Implement a clear validation workflow for all user-generated content.

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # InfoHub (PHP + SQL)
 
 ## Objectif
@@ -42,3 +43,14 @@ Si tu n’as pas d’images, le site fonctionne quand même (cartes sans image).
 ## Markdown
 Le site supporte un Markdown “simple” (titres `#`, gras `**`, italique `*`, liens `[t](https://...)`, code inline `` `code` ``) via `lib/markdown.php`.
 
+=======
+# InfoHubConcours-AIMD
+Site du concours d'InfoHub
+
+## Membres du groupe
+SI-CA2a:  
+Anthony Simond  
+Imad ElKhattabi  
+Mouldi Achouri  
+David Galindo  
+>>>>>>> ab45cda1e898aaa1e340b6fe64d48c7a093075c5

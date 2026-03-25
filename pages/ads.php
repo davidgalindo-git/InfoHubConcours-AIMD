@@ -26,9 +26,9 @@ $items = getAdsList($perPage, $offset);
       <?php foreach ($items as $ad): ?>
         <article class="card card-ad">
           <?php if (!empty($ad['image_path'])): ?>
-            <div class="ad-placeholder">Pub</div>
-          <?php else: ?>
             <img class="card-image" src="<?= h($ad['image_path']) ?>" alt="">
+          <?php else: ?>
+            <div class="ad-placeholder">Pub</div>
           <?php endif; ?>
           <div class="card-body">
             <h3 class="card-title"><?= h($ad['title']) ?></h3>

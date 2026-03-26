@@ -25,7 +25,7 @@ $items = getNewsList($perPage, $offset);
   <?php else: ?>
     <div class="cards">
       <?php foreach ($items as $n): ?>
-        <article class="card">
+        <a class="card card-clickable" href="index.php?route=news_detail&id=<?= (int)$n['id'] ?>">
           <?php if (!empty($n['image_path'])): ?>
             <img class="card-image" src="<?= h($n['image_path']) ?>" alt="">
           <?php endif; ?>
@@ -33,9 +33,8 @@ $items = getNewsList($perPage, $offset);
             <h3 class="card-title"><?= h($n['title']) ?></h3>
             <p class="muted">Publié le <?= h(date_format(new DateTime($n['published_at']), 'd/m/Y')) ?></p>
             <p class="card-text"><?= h(markdown_snippet((string)$n['content'], 180)) ?></p>
-            <a class="link" href="index.php?route=news_detail&id=<?= (int)$n['id'] ?>">Lire</a>
           </div>
-        </article>
+        </a>
       <?php endforeach; ?>
     </div>
 

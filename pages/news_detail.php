@@ -22,20 +22,22 @@ $news = getNewsById((int)$id);
     </div>
   <?php else: ?>
     <article class="detail">
+      <a class="btn btn-back" href="index.php?route=news" aria-label="Retour">←</a>
       <?php if (!empty($news['image_path'])): ?>
         <img class="detail-image" src="<?= h($news['image_path']) ?>" alt="">
       <?php endif; ?>
-      <h1 class="detail-title"><?= h($news['title']) ?></h1>
-      <p class="muted">
-        Publié le <?= h(date_format(new DateTime($news['published_at']), 'd/m/Y')) ?>
-        <?php if (!empty($news['contest_month'])): ?>
-          · Concours (<?= h((string)$news['contest_month']) ?>)
-        <?php endif; ?>
-      </p>
+      <div class="detail-header <?= empty($news['image_path']) ? 'detail-header--no-image' : '' ?>">
+        <h1 class="detail-title"><?= h($news['title']) ?></h1>
+        <p class="muted">
+          Publié le <?= h(date_format(new DateTime($news['published_at']), 'd/m/Y')) ?>
+          <?php if (!empty($news['contest_month'])): ?>
+            · Concours (<?= h((string)$news['contest_month']) ?>)
+          <?php endif; ?>
+        </p>
+      </div>
       <div class="rich">
         <?= render_markdown((string)$news['content']) ?>
       </div>
-      <a class="btn" href="index.php?route=news">Retour aux actualités</a>
     </article>
   <?php endif; ?>
 </section>

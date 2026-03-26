@@ -14,10 +14,15 @@ declare(strict_types=1);
     <!-- Bandeau assemblé (logo + bandeau.jpg) -->
     <div class="header">
       <div class="header-logo">
-        <img src="assets/logo.png" alt="Logo" onerror="this.style.display='none'; this.parentElement.querySelector('.header-logo-fallback').style.display='flex'">
-        <span class="header-logo-fallback" style="display:none"><?= htmlspecialchars(SITE_TITLE) ?></span>
+        <img
+          class="header-logo-img"
+          src="assets/logo.png"
+          alt="logo.png"
+        >
       </div>
-      <div class="header-banner" aria-label="Bandeau"></div>
+      <div class="header-banner" aria-label="Bandeau">
+        <img class="header-banner-img" src="assets/bandeau.jpg" alt="bandeau.jpg">
+      </div>
     </div>
   </header>
   <?php require __DIR__ . '/navbar.php'; ?>

@@ -22,16 +22,18 @@ $ann = getAnnouncementById((int)$id);
     </div>
   <?php else: ?>
     <article class="detail">
+      <a class="btn btn-back" href="index.php?route=announcements" aria-label="Retour">←</a>
       <?php if (!empty($ann['image_path'])): ?>
         <img class="detail-image" src="<?= h($ann['image_path']) ?>" alt="">
       <?php endif; ?>
-      <div class="pill pill-lg"><?= h(ANNOUNCEMENT_CATEGORIES[$ann['category_slug']] ?? $ann['category_slug']) ?></div>
-      <h1 class="detail-title"><?= h($ann['title']) ?></h1>
-      <p class="muted">Le <?= h(date_format(new DateTime($ann['posted_at']), 'd/m/Y')) ?></p>
+      <div class="detail-header <?= empty($ann['image_path']) ? 'detail-header--no-image' : '' ?>">
+        <div class="pill pill-lg"><?= h(ANNOUNCEMENT_CATEGORIES[$ann['category_slug']] ?? $ann['category_slug']) ?></div>
+        <h1 class="detail-title"><?= h($ann['title']) ?></h1>
+        <p class="muted">Le <?= h(date_format(new DateTime($ann['posted_at']), 'd/m/Y')) ?></p>
+      </div>
       <div class="rich">
         <?= render_markdown((string)$ann['content']) ?>
       </div>
-      <a class="btn" href="index.php?route=announcements">Retour aux annonces</a>
     </article>
   <?php endif; ?>
 </section>

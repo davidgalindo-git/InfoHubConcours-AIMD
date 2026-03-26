@@ -9,16 +9,70 @@ require_once __DIR__ . '/../lib/repositories.php';
 <?php
 $currentMonth = date('Y-m');
 $contest = getContestOfMonth($currentMonth);
-$newsList = getLatestFeaturedNews(1);
-$newsItem = $newsList[0] ?? null;
+$newsItems = getLatestFeaturedNews(2);
+$announcementItems = getLatestFeaturedAnnouncements(2);
+$adItems = getLatestAds(2);
 
-$annList = getLatestFeaturedAnnouncements(1);
-$announcementItem = $annList[0] ?? null;
+// Exemples "Annonces" affichés sur la page d'accueil :
+// - on parcourt les images `annonce*.*` présentes dans `assets/`
+$announcementExampleImages = [];
+$exampleSources = [
+  ['fs' => __DIR__ . '/../assets', 'url' => 'assets'],
+];
+$allowedExts = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'];
+$seen = [];
 
-$adsList = getLatestAds(1);
-$adItem = $adsList[0] ?? null;
+foreach ($exampleSources as $src) {
+  if (!is_dir($src['fs'])) {
+    continue;
+  }
 
-$contestHref = $contest ? ('index.php?route=news_detail&id=' . (int)$contest['id']) : 'index.php?route=news';
+  $files = scandir($src['fs']);
+  if ($files === false) {
+    continue;
+  }
+
+  foreach ($files as $file) {
+    if ($file === '.' || $file === '..') {
+      continue;
+    }
+
+    $fullPath = $src['fs'] . '/' . $file;
+    if (!is_file($fullPath)) {
+      continue;
+    }
+
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    if (!in_array($ext, $allowedExts, true)) {
+      continue;
+    }
+
+    $baseName = pathinfo($file, PATHINFO_FILENAME); // sans extension
+    if (!preg_match('/^annonce/i', (string)$baseName)) {
+      continue;
+    }
+
+    $imageSrc = $src['url'] . '/' . $file;
+    if (isset($seen[$imageSrc])) {
+      continue;
+    }
+    $seen[$imageSrc] = true;
+
+    // alt basé sur le nom de fichier (ex: "annonce1" => "Annonce1")
+    $altBase = preg_replace('/[_-]+/', ' ', (string)$baseName) ?? (string)$baseName;
+    $alt = ucwords(trim((string)$altBase));
+
+    $announcementExampleImages[] = [
+      'src' => $imageSrc,
+      'alt' => $alt,
+      'filename' => $file,
+    ];
+  }
+}
+
+usort($announcementExampleImages, function ($a, $b) {
+  return strcmp((string)$a['filename'], (string)$b['filename']);
+});
 ?>
 
 <section class="intro">
@@ -28,58 +82,80 @@ $contestHref = $contest ? ('index.php?route=news_detail&id=' . (int)$contest['id
   <p>Contact: CPNV_Infohub@eduvaud.ch</p>
 </section>
 
-<div class="tiles">
-  <!-- Concours du mois -->
-  <a class="tile" href="<?= h($contestHref) ?>">
-    <?php if ($contest && !empty($contest['image_path'])): ?>
-      <img src="<?= h($contest['image_path']) ?>" alt="">
-    <?php else: ?>
+<?php if ($contest): ?>
+  <div class="tiles tiles-tight">
+    <a class="tile" href="index.php?route=news_detail&id=<?= (int)$contest['id'] ?>">
+    <div class="tile-title">Concours du mois</div>  
+      <?php if (!empty($contest['image_path'])): ?>
+        <img src="<?= h($contest['image_path']) ?>" alt="">
+      <?php else: ?>
+        <div class="tile-placeholder"><?= h((string)$contest['title']) ?></div>
+      <?php endif; ?>
+    </a>
+  </div>
+<?php else: ?>
+  <div class="tiles tiles-tight">
+    <div class="tile" aria-hidden="true">
       <div class="tile-placeholder">Concours</div>
-    <?php endif; ?>
-    <div class="tile-title">Le concours du mois</div>
-    <?php if ($contest && !empty($contest['title'])): ?>
-      <div class="tile-subtitle"><?= h((string)$contest['title']) ?></div>
-    <?php endif; ?>
-  </a>
+      <div class="tile-title">Le concours du mois</div>
+    </div>
+  </div>
+<?php endif; ?>
 
-  <!-- News -->
-  <a class="tile" href="index.php?route=news">
-    <?php if ($newsItem && !empty($newsItem['image_path'])): ?>
-      <img src="<?= h($newsItem['image_path']) ?>" alt="">
-    <?php else: ?>
-      <div class="tile-placeholder">News</div>
-    <?php endif; ?>
-    <div class="tile-title">Les news</div>
-    <?php if ($newsItem && !empty($newsItem['title'])): ?>
-      <div class="tile-subtitle"><?= h((string)$newsItem['title']) ?></div>
-    <?php endif; ?>
-  </a>
+<div class="featured-sections">
+<section class="section">
+  <h1 class="section-title">Actualités à la une</h1>
+  <div class="tiles tiles-tight">
+    <?php foreach ($newsItems as $n): ?>
+      <a class="tile" href="index.php?route=news_detail&id=<?= (int)$n['id'] ?>">
+        <?php if (!empty($n['image_path'])): ?>
+          <img src="<?= h($n['image_path']) ?>" alt="">
+          <div class="tile-title"><?= h((string)$n['title']) ?></div>
+        <?php else: ?>
+          <div class="tile-placeholder"><?= h((string)$n['title']) ?></div>
+        <?php endif; ?>
+      </a>
+    <?php endforeach; ?>
+  </div>
+</section>
 
-  <!-- Annonces -->
-  <a class="tile" href="index.php?route=announcements">
-    <?php if ($announcementItem && !empty($announcementItem['image_path'])): ?>
-      <img src="<?= h($announcementItem['image_path']) ?>" alt="">
+<section class="section">
+  <h1 class="section-title">Annonces à la une</h1>
+  <div class="tiles tiles-tight">
+    <?php if (!empty($announcementExampleImages)): ?>
+      <?php foreach ($announcementExampleImages as $ex): ?>
+        <a class="tile" href="index.php?route=announcements">
+          <img src="<?= h($ex['src']) ?>" alt="<?= h($ex['alt']) ?>">
+        </a>
+      <?php endforeach; ?>
     <?php else: ?>
-      <div class="tile-placeholder">Annonces</div>
+      <?php foreach ($announcementItems as $a): ?>
+        <a class="tile" href="index.php?route=announcement_detail&id=<?= (int)$a['id'] ?>">
+          <?php if (!empty($a['image_path'])): ?>
+            <img src="<?= h($a['image_path']) ?>" alt="<?= h((string)$a['title']) ?>">
+          <?php else: ?>
+            <div class="tile-placeholder"><?= h((string)$a['title']) ?></div>
+          <?php endif; ?>
+        </a>
+      <?php endforeach; ?>
     <?php endif; ?>
-    <div class="tile-title">Les annonces</div>
-    <?php if ($announcementItem && !empty($announcementItem['title'])): ?>
-      <div class="tile-subtitle"><?= h((string)$announcementItem['title']) ?></div>
-    <?php endif; ?>
-  </a>
+  </div>
+</section>
 
-  <!-- Pubs -->
-  <a class="tile" href="index.php?route=ads">
-    <?php if ($adItem && !empty($adItem['image_path'])): ?>
-      <img src="<?= h($adItem['image_path']) ?>" alt="">
-    <?php else: ?>
-      <div class="tile-placeholder">Pubs</div>
-    <?php endif; ?>
-    <div class="tile-title">Les pubs</div>
-    <?php if ($adItem && !empty($adItem['title'])): ?>
-      <div class="tile-subtitle"><?= h((string)$adItem['title']) ?></div>
-    <?php endif; ?>
-  </a>
+<section class="section">
+  <h1 class="section-title">Pubs à la une</h1>
+  <div class="tiles tiles-tight">
+    <?php foreach ($adItems as $ad): ?>
+      <a class="tile" href="index.php?route=ad_detail&id=<?= (int)$ad['id'] ?>">
+        <?php if (!empty($ad['image_path'])): ?>
+          <img src="<?= h($ad['image_path']) ?>" alt="">
+        <?php else: ?>
+          <div class="tile-placeholder"><?= h((string)$ad['title']) ?></div>
+        <?php endif; ?>
+      </a>
+    <?php endforeach; ?>
+  </div>
+</section>
 </div>
 
 <?php require __DIR__ . '/../templates/footer.php'; ?>

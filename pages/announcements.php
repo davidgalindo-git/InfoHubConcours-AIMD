@@ -36,7 +36,7 @@ $items = getAnnouncementsList($category, $perPage, $offset);
   <?php else: ?>
     <div class="cards">
       <?php foreach ($items as $a): ?>
-        <article class="card">
+        <a class="card card-clickable" href="index.php?route=announcement_detail&id=<?= (int)$a['id'] ?>">
           <?php if (!empty($a['image_path'])): ?>
             <img class="card-image" src="<?= h($a['image_path']) ?>" alt="">
           <?php endif; ?>
@@ -45,9 +45,8 @@ $items = getAnnouncementsList($category, $perPage, $offset);
             <h3 class="card-title"><?= h($a['title']) ?></h3>
             <p class="muted">Le <?= h(date_format(new DateTime($a['posted_at']), 'd/m/Y')) ?></p>
             <p class="card-text"><?= h(markdown_snippet((string)$a['content'], 170)) ?></p>
-            <a class="link" href="index.php?route=announcement_detail&id=<?= (int)$a['id'] ?>">Voir</a>
           </div>
-        </article>
+        </a>
       <?php endforeach; ?>
     </div>
 

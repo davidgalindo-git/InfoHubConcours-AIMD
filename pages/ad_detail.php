@@ -22,18 +22,20 @@ $ad = getAdById((int)$id);
     </div>
   <?php else: ?>
     <article class="detail">
+      <a class="btn btn-back" href="index.php?route=ads" aria-label="Retour">←</a>
       <?php if (!empty($ad['image_path'])): ?>
         <img class="detail-image" src="<?= h($ad['image_path']) ?>" alt="">
       <?php endif; ?>
-      <h1 class="detail-title"><?= h($ad['title']) ?></h1>
-      <p class="muted">Le <?= h(date_format(new DateTime($ad['posted_at']), 'd/m/Y')) ?></p>
+      <div class="detail-header <?= empty($ad['image_path']) ? 'detail-header--no-image' : '' ?>">
+        <h1 class="detail-title"><?= h($ad['title']) ?></h1>
+        <p class="muted">Le <?= h(date_format(new DateTime($ad['posted_at']), 'd/m/Y')) ?></p>
+      </div>
       <div class="rich">
         <?= render_markdown((string)$ad['content']) ?>
       </div>
       <?php if (!empty($ad['link_url'])): ?>
         <a class="btn btn-primary" href="<?= h($ad['link_url']) ?>" target="_blank" rel="noopener noreferrer">Ouvrir</a>
       <?php endif; ?>
-      <a class="btn" href="index.php?route=ads">Retour aux pubs</a>
     </article>
   <?php endif; ?>
 </section>

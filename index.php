@@ -68,6 +68,7 @@ try {
   }
 } catch (Throwable $e) {
   http_response_code(500);
+  $app_exception = $e;
   require __DIR__ . '/pages/server_error.php';
 }
 

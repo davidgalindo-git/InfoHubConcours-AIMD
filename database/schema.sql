@@ -1,5 +1,8 @@
 -- Schéma SQL MySQL/MariaDB (utf8mb4)
 -- Exécute ensuite database/seed.sql pour démarrer.
+-- Le nom ci-dessous doit être identique à DB_NAME dans config.php.
+CREATE DATABASE IF NOT EXISTS infohub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE infohub;
 
 CREATE TABLE IF NOT EXISTS news (
   id INT AUTO_INCREMENT PRIMARY KEY,

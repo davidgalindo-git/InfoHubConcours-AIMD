@@ -19,49 +19,52 @@ $items = getAnnouncementsList($category, $perPage, $offset);
 
 <?php require __DIR__ . '/../templates/header.php'; ?>
 
-<section class="section">
-  <h1 class="section-title">Annonces</h1>
+<section class="my-6 animate-fade-in">
+  <h1 class="text-xl font-bold mb-4">Annonces</h1>
 
-  <div class="tabs">
-    <a class="tab <?= $category === 'toutes' ? 'active' : '' ?>" href="index.php?route=announcements&category=toutes">Toutes</a>
+  <div role="tablist" class="tabs tabs-boxed flex-wrap gap-1 bg-base-200/50 p-1 rounded-2xl border border-base-content/10 w-fit max-w-full mb-5">
+    <a role="tab" class="tab tab-sm rounded-xl transition-all duration-200 <?= $category === 'toutes' ? 'tab-active !bg-primary text-primary-content shadow-sm' : '' ?>" href="index.php?route=announcements&category=toutes">Toutes</a>
     <?php foreach (ANNOUNCEMENT_CATEGORIES as $slug => $label): ?>
-      <a class="tab <?= $category === $slug ? 'active' : '' ?>" href="index.php?route=announcements&category=<?= h($slug) ?>"><?= h($label) ?></a>
+      <a role="tab" class="tab tab-sm rounded-xl transition-all duration-200 <?= $category === $slug ? 'tab-active !bg-primary text-primary-content shadow-sm' : '' ?>" href="index.php?route=announcements&category=<?= h($slug) ?>"><?= h($label) ?></a>
     <?php endforeach; ?>
   </div>
 
   <?php if (!$items): ?>
-    <div class="empty-state">
+    <div class="rounded-2xl border border-dashed border-base-content/20 bg-base-200/40 px-5 py-6 text-base-content/70">
       <p>Aucune annonce.</p>
     </div>
   <?php else: ?>
-    <div class="cards">
+    <div class="grid gap-4 sm:grid-cols-2">
       <?php foreach ($items as $a): ?>
-        <article class="card">
+        <article class="card bg-base-200/60 border border-base-content/10 overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
           <?php if (!empty($a['image_path'])): ?>
-            <img class="card-image" src="<?= h($a['image_path']) ?>" alt="">
+            <figure class="aspect-[16/10] w-full overflow-hidden bg-base-300/50">
+              <img class="h-full w-full object-cover" src="<?= h($a['image_path']) ?>" alt="">
+            </figure>
           <?php endif; ?>
-          <div class="card-body">
-            <div class="pill"><?= h(ANNOUNCEMENT_CATEGORIES[$a['category_slug']] ?? $a['category_slug']) ?></div>
-            <h3 class="card-title"><?= h($a['title']) ?></h3>
-            <p class="muted">Le <?= h(date_format(new DateTime($a['posted_at']), 'd/m/Y')) ?></p>
-            <p class="card-text"><?= h(markdown_snippet((string)$a['content'], 170)) ?></p>
-            <a class="link" href="index.php?route=announcement_detail&id=<?= (int)$a['id'] ?>">Voir</a>
+          <div class="card-body p-4 gap-1">
+            <span class="badge badge-outline badge-sm font-semibold w-fit border-base-content/20"><?= h(ANNOUNCEMENT_CATEGORIES[$a['category_slug']] ?? $a['category_slug']) ?></span>
+            <h3 class="font-bold text-base leading-snug"><?= h($a['title']) ?></h3>
+            <p class="text-xs text-base-content/55">Le <?= h(date_format(new DateTime($a['posted_at']), 'd/m/Y')) ?></p>
+            <p class="text-sm text-base-content/70 line-clamp-4"><?= h(markdown_snippet((string)$a['content'], 170)) ?></p>
+            <a class="link link-primary font-bold text-sm mt-2 w-fit" href="index.php?route=announcement_detail&id=<?= (int)$a['id'] ?>">Voir</a>
           </div>
         </article>
       <?php endforeach; ?>
     </div>
 
-    <div class="pagination">
+    <div class="flex flex-wrap items-center justify-between gap-3 mt-6">
       <?php if ($page > 1): ?>
-        <a class="btn" href="index.php?route=announcements&category=<?= h($category) ?>&page=<?= $page - 1 ?>">Précédent</a>
+        <a class="btn btn-outline border-base-content/20 transition-all duration-200 hover:border-primary/50" href="index.php?route=announcements&category=<?= h($category) ?>&page=<?= $page - 1 ?>">Précédent</a>
+      <?php else: ?>
+        <span></span>
       <?php endif; ?>
-      <span class="muted">Page <?= h((string)$page) ?> / <?= h((string)$totalPages) ?></span>
+      <span class="text-sm text-base-content/55">Page <?= h((string)$page) ?> / <?= h((string)$totalPages) ?></span>
       <?php if ($page < $totalPages): ?>
-        <a class="btn" href="index.php?route=announcements&category=<?= h($category) ?>&page=<?= $page + 1 ?>">Suivant</a>
+        <a class="btn btn-outline border-base-content/20 transition-all duration-200 hover:border-primary/50" href="index.php?route=announcements&category=<?= h($category) ?>&page=<?= $page + 1 ?>">Suivant</a>
       <?php endif; ?>
     </div>
   <?php endif; ?>
 </section>
 
 <?php require __DIR__ . '/../templates/footer.php'; ?>
-

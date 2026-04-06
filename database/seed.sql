@@ -1,5 +1,7 @@
 -- Données de test (exemples pour lancer rapidement le site)
 -- IMPORTANT : adapte les chemins image_path si tu ajoutes des images.
+-- Doit correspondre à DB_NAME dans config.php (comme dans schema.sql).
+USE infohub;
 
 SET NAMES utf8mb4;
 

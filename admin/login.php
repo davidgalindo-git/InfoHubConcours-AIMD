@@ -17,35 +17,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-theme="infohub" class="scroll-smooth">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="<?= htmlspecialchars(base_url(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
   <title>Admin - InfoHub</title>
-  <link rel="stylesheet" href="../assets/styles.css">
+  <link rel="stylesheet" href="../assets/app.css">
 </head>
-<body>
-<main class="container" style="margin-top: 24px;">
-  <div class="empty-state">
-    <h1>Connexion admin</h1>
-    <p>Mot de passe : modifie `ADMIN_PASSWORD` dans `config.php`.</p>
+<body class="min-h-screen flex items-center justify-center px-4">
+<main class="w-full max-w-md animate-fade-in">
+  <div class="card bg-base-200/70 border border-base-content/10 shadow-xl">
+    <div class="card-body gap-4">
+      <h1 class="card-title text-2xl font-bold justify-center">Connexion admin</h1>
+      <p class="text-sm text-base-content/60 text-center">Mot de passe : modifie `ADMIN_PASSWORD` dans `config.php`.</p>
 
-    <?php if ($error): ?>
-      <p style="color:#ffb3b3; font-weight:800;"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
+      <?php if ($error): ?>
+        <div role="alert" class="alert alert-error text-sm py-3">
+          <span><?= htmlspecialchars($error) ?></span>
+        </div>
+      <?php endif; ?>
 
-    <form method="post" class="stack" style="margin-top: 14px;">
-      <input
-        type="password"
-        name="password"
-        placeholder="Mot de passe"
-        required
-        style="flex:1; min-width: 240px; padding: 10px 12px; border-radius: 12px; border:1px solid rgba(255,255,255,.16); background: rgba(0,0,0,.12); color: var(--text);"
-      >
-      <button class="btn btn-primary" type="submit">Se connecter</button>
-    </form>
+      <form method="post" class="flex flex-col gap-3 mt-2">
+        <input
+          type="password"
+          name="password"
+          placeholder="Mot de passe"
+          required
+          class="input input-bordered w-full bg-base-100/80 border-base-content/15 focus:border-primary transition-colors duration-200"
+        >
+        <button class="btn btn-primary transition-transform duration-200 hover:scale-[1.01]" type="submit">Se connecter</button>
+      </form>
+    </div>
   </div>
 </main>
 </body>
 </html>
-

@@ -7,31 +7,31 @@ require_admin();
 
 <?php require __DIR__ . '/header.php'; ?>
 
-<section class="section">
-  <h1 class="section-title">Dashboard admin</h1>
-  <div class="cards" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-    <a class="card nav-card" href="news_manage.php" style="text-decoration:none;">
+<section class="my-2">
+  <h1 class="text-xl font-bold mb-5">Dashboard admin</h1>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <a class="card bg-base-200/60 border border-base-content/10 shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 no-underline text-inherit" href="news_manage.php">
       <div class="card-body">
-        <h3 class="card-title">Gérer les actualités</h3>
-        <p class="card-text">Créer et publier des articles (avec “à la une” + concours).</p>
+        <h3 class="card-title text-base">Gérer les actualités</h3>
+        <p class="text-sm text-base-content/65">Créer et publier des articles (avec “à la une” + concours).</p>
       </div>
     </a>
-    <a class="card nav-card" href="announcements_manage.php" style="text-decoration:none;">
+    <a class="card bg-base-200/60 border border-base-content/10 shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 no-underline text-inherit" href="announcements_manage.php">
       <div class="card-body">
-        <h3 class="card-title">Gérer les annonces</h3>
-        <p class="card-text">Catégories : vente, don, covoiturage, aide, etc.</p>
+        <h3 class="card-title text-base">Gérer les annonces</h3>
+        <p class="text-sm text-base-content/65">Catégories : vente, don, covoiturage, aide, etc.</p>
       </div>
     </a>
-    <a class="card nav-card" href="ads_manage.php" style="text-decoration:none;">
+    <a class="card bg-base-200/60 border border-base-content/10 shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 no-underline text-inherit" href="ads_manage.php">
       <div class="card-body">
-        <h3 class="card-title">Gérer les pubs</h3>
-        <p class="card-text">Créer des pubs (avec lien optionnel).</p>
+        <h3 class="card-title text-base">Gérer les pubs</h3>
+        <p class="text-sm text-base-content/65">Créer des pubs (avec lien optionnel).</p>
       </div>
     </a>
-    <div class="card">
+    <div class="card bg-base-200/40 border border-dashed border-base-content/15">
       <div class="card-body">
-        <h3 class="card-title">Astuce</h3>
-        <p class="card-text">
+        <h3 class="card-title text-base">Astuce</h3>
+        <p class="text-sm text-base-content/65">
           Le contenu accepte un Markdown “simple” (titres, gras, italique, liens, code inline).
         </p>
       </div>
@@ -40,4 +40,3 @@ require_admin();
 </section>
 
 <?php require __DIR__ . '/footer.php'; ?>
-

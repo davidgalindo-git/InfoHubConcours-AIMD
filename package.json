@@ -1,0 +1,14 @@
+{
+  "name": "infohub-concours",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./assets/src/input.css -o ./assets/app.css --minify",
+    "watch:css": "tailwindcss -i ./assets/src/input.css -o ./assets/app.css --watch"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "daisyui": "^4.12.14",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15"
+  }
+}

@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply min-h-screen antialiased text-base-content;
+    background-color: theme('colors.base-100');
+    background-image:
+      radial-gradient(1200px 600px at 20% 0%, rgba(79, 124, 255, 0.22), transparent 55%),
+      radial-gradient(900px 500px at 100% 40%, rgba(47, 93, 242, 0.14), transparent 50%);
+  }
+}
+
+@layer components {
+  .rich h1,
+  .rich h2,
+  .rich h3 {
+    @apply font-bold my-3;
+  }
+  .rich p {
+    @apply my-2 leading-relaxed;
+  }
+  .rich a {
+    @apply link link-primary;
+  }
+  .rich code {
+    @apply rounded-lg px-1.5 py-0.5 text-sm bg-base-300/80 border border-base-content/10;
+  }
+  .rich ul {
+    @apply list-disc pl-5 my-2;
+  }
+  .rich ol {
+    @apply list-decimal pl-5 my-2;
+  }
+}

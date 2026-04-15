@@ -21,9 +21,9 @@ $ann = getAnnouncementById((int)$id);
       <a class="btn btn-outline border-base-content/20" href="index.php?route=announcements">Retour</a>
     </div>
   <?php else: ?>
-    <article class="card bg-base-200/65 border border-base-content/10 shadow-lg p-6 gap-4">
+    <article class="card bg-base-200/65 border border-base-content/10 shadow-lg p-4 sm:p-6 gap-4 min-w-0 max-w-full overflow-x-clip">
       <?php if (!empty($ann['image_path'])): ?>
-        <img class="w-full max-h-[360px] object-cover rounded-xl border border-base-content/10" src="<?= h($ann['image_path']) ?>" alt="">
+        <img class="w-full max-w-full max-h-[360px] object-cover rounded-xl border border-base-content/10" src="<?= h($ann['image_path']) ?>" alt="">
       <?php endif; ?>
       <span class="badge badge-outline badge-lg font-semibold w-fit border-base-content/20"><?= h(ANNOUNCEMENT_CATEGORIES[$ann['category_slug']] ?? $ann['category_slug']) ?></span>
       <h1 class="text-2xl font-bold leading-tight"><?= h($ann['title']) ?></h1>

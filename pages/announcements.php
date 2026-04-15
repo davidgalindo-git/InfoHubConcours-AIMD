@@ -22,10 +22,10 @@ $items = getAnnouncementsList($category, $perPage, $offset);
 <section class="my-6 animate-fade-in">
   <h1 class="text-xl font-bold mb-4">Annonces</h1>
 
-  <div role="tablist" class="tabs tabs-boxed flex-wrap gap-1 bg-base-200/50 p-1 rounded-2xl border border-base-content/10 w-fit max-w-full mb-5">
-    <a role="tab" class="tab tab-sm rounded-xl transition-all duration-200 <?= $category === 'toutes' ? 'tab-active !bg-primary text-primary-content shadow-sm' : '' ?>" href="index.php?route=announcements&category=toutes">Toutes</a>
+  <div role="tablist" class="tabs tabs-boxed flex-nowrap sm:flex-wrap gap-1 bg-base-200/50 p-1 rounded-2xl border border-base-content/10 max-w-full w-full sm:w-fit mb-5 overflow-x-auto overflow-y-hidden scroll-smooth pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden touch-pan-x">
+    <a role="tab" class="tab tab-sm rounded-xl shrink-0 transition-all duration-200 <?= $category === 'toutes' ? 'tab-active !bg-primary text-primary-content shadow-sm' : '' ?>" href="index.php?route=announcements&category=toutes">Toutes</a>
     <?php foreach (ANNOUNCEMENT_CATEGORIES as $slug => $label): ?>
-      <a role="tab" class="tab tab-sm rounded-xl transition-all duration-200 <?= $category === $slug ? 'tab-active !bg-primary text-primary-content shadow-sm' : '' ?>" href="index.php?route=announcements&category=<?= h($slug) ?>"><?= h($label) ?></a>
+      <a role="tab" class="tab tab-sm rounded-xl shrink-0 transition-all duration-200 <?= $category === $slug ? 'tab-active !bg-primary text-primary-content shadow-sm' : '' ?>" href="index.php?route=announcements&category=<?= h($slug) ?>"><?= h($label) ?></a>
     <?php endforeach; ?>
   </div>
 
@@ -36,7 +36,7 @@ $items = getAnnouncementsList($category, $perPage, $offset);
   <?php else: ?>
     <div class="grid gap-4 sm:grid-cols-2">
       <?php foreach ($items as $a): ?>
-        <article class="card bg-base-200/60 border border-base-content/10 overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+        <article class="card bg-base-200/60 border border-base-content/10 overflow-x-clip min-w-0 max-w-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
           <?php if (!empty($a['image_path'])): ?>
             <figure class="aspect-[16/10] w-full overflow-hidden bg-base-300/50">
               <img class="h-full w-full object-cover" src="<?= h($a['image_path']) ?>" alt="">

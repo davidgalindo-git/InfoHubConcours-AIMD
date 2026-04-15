@@ -20,17 +20,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="fr" data-theme="infohub" class="scroll-smooth">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <base href="<?= htmlspecialchars(base_url(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
   <title>Admin - InfoHub</title>
   <link rel="stylesheet" href="../assets/app.css">
 </head>
-<body class="min-h-screen flex items-center justify-center px-4">
-<main class="w-full max-w-md animate-fade-in">
-  <div class="card bg-base-200/70 border border-base-content/10 shadow-xl">
+<body class="min-h-screen flex items-center justify-center px-3 min-[400px]:px-4 overflow-x-clip">
+<main class="w-full min-w-0 max-w-md animate-fade-in">
+  <div class="card bg-base-200/70 border border-base-content/10 shadow-xl min-w-0">
     <div class="card-body gap-4">
-      <h1 class="card-title text-2xl font-bold justify-center">Connexion admin</h1>
-      <p class="text-sm text-base-content/60 text-center">Mot de passe : modifie `ADMIN_PASSWORD` dans `config.php`.</p>
+      <h1 class="card-title text-2xl font-bold justify-center">Espace rédaction</h1>
+      <p class="text-sm text-base-content/60 text-center">Mot de passe défini dans <code class="text-xs">config.php</code> → constante <code class="text-xs">ADMIN_PASSWORD</code>.</p>
 
       <?php if ($error): ?>
         <div role="alert" class="alert alert-error text-sm py-3">

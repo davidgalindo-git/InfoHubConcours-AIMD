@@ -24,7 +24,7 @@ $items = getAdsList($perPage, $offset);
   <?php else: ?>
     <div class="grid gap-4 sm:grid-cols-2">
       <?php foreach ($items as $ad): ?>
-        <article class="card bg-base-300/50 border border-base-content/10 overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+        <article class="card bg-base-300/50 border border-base-content/10 overflow-x-clip min-w-0 max-w-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
           <?php if (!empty($ad['image_path'])): ?>
             <figure class="aspect-[16/10] w-full overflow-hidden bg-base-300/50">
               <img class="h-full w-full object-cover" src="<?= h($ad['image_path']) ?>" alt="">

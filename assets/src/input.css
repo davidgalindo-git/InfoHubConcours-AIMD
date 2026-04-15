@@ -2,35 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mise en page : zoom navigateur (125 %–200 %+), petits écrans, dézoom */
 @layer base {
+  html {
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
     @apply min-h-screen antialiased text-base-content;
+    overflow-x: clip;
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
     background-color: theme('colors.base-100');
     background-image:
       radial-gradient(1200px 600px at 20% 0%, rgba(79, 124, 255, 0.22), transparent 55%),
       radial-gradient(900px 500px at 100% 40%, rgba(47, 93, 242, 0.14), transparent 50%);
   }
+
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
 }
 
 @layer components {
+  /** Contenu centré, largeur max, marges latérales qui suivent le zoom */
+  .shell {
+    @apply w-full min-w-0 max-w-[1100px] mx-auto px-3 min-[400px]:px-4 sm:px-5;
+  }
+
+  .rich {
+    @apply break-words [overflow-wrap:anywhere] max-w-full;
+  }
+
   .rich h1,
   .rich h2,
   .rich h3 {
-    @apply font-bold my-3;
+    @apply font-bold my-3 break-words text-balance max-w-full;
   }
+
   .rich p {
-    @apply my-2 leading-relaxed;
+    @apply my-2 leading-relaxed max-w-full;
   }
+
   .rich a {
-    @apply link link-primary;
+    @apply link link-primary break-words;
   }
+
   .rich code {
-    @apply rounded-lg px-1.5 py-0.5 text-sm bg-base-300/80 border border-base-content/10;
+    @apply rounded-lg px-1.5 py-0.5 text-sm bg-base-300/80 border border-base-content/10 break-all;
   }
+
+  .rich pre {
+    @apply max-w-full overflow-x-auto p-3 rounded-xl bg-base-300/50 border border-base-content/10 text-sm my-3;
+  }
+
   .rich ul {
-    @apply list-disc pl-5 my-2;
+    @apply list-disc pl-5 my-2 max-w-full;
   }
+
   .rich ol {
-    @apply list-decimal pl-5 my-2;
+    @apply list-decimal pl-5 my-2 max-w-full;
+  }
+
+  .rich table {
+    @apply block w-max max-w-full overflow-x-auto border-collapse my-3;
   }
 }

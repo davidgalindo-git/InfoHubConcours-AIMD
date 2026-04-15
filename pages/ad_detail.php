@@ -21,9 +21,9 @@ $ad = getAdById((int)$id);
       <a class="btn btn-outline border-base-content/20" href="index.php?route=ads">Retour</a>
     </div>
   <?php else: ?>
-    <article class="card bg-base-200/65 border border-base-content/10 shadow-lg p-6 gap-4">
+    <article class="card bg-base-200/65 border border-base-content/10 shadow-lg p-4 sm:p-6 gap-4 min-w-0 max-w-full overflow-x-clip">
       <?php if (!empty($ad['image_path'])): ?>
-        <img class="w-full max-h-[360px] object-cover rounded-xl border border-base-content/10" src="<?= h($ad['image_path']) ?>" alt="">
+        <img class="w-full max-w-full max-h-[360px] object-cover rounded-xl border border-base-content/10" src="<?= h($ad['image_path']) ?>" alt="">
       <?php endif; ?>
       <h1 class="text-2xl font-bold leading-tight"><?= h($ad['title']) ?></h1>
       <p class="text-sm text-base-content/55">Le <?= h(date_format(new DateTime($ad['posted_at']), 'd/m/Y')) ?></p>

@@ -63,12 +63,20 @@ try {
 
     default:
       http_response_code(404);
-      require __DIR__ . '/pages/not_found.php';
+      $err_title = 'Page introuvable';
+      $err_text = "La page demandée n'existe pas.";
+      $err_style = 'neutral';
+      $err_show_home = true;
+      require __DIR__ . '/pages/error.php';
       break;
   }
 } catch (Throwable $e) {
   http_response_code(500);
-  $app_exception = $e;
-  require __DIR__ . '/pages/server_error.php';
+  $err_title = 'Erreur serveur';
+  $err_text = 'Une erreur est survenue. Vérifie la configuration de la base de données.';
+  $err_style = 'danger';
+  $err_show_home = false;
+  $err_debug = $e;
+  require __DIR__ . '/pages/error.php';
 }
 

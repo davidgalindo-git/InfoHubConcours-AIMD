@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 // Copie ce fichier en `config.php` à la racine du projet, puis adapte les valeurs.
+// Base : importer database/install.sql dans MySQL une fois.
 
 // -----------------------------
 // Configuration base de données

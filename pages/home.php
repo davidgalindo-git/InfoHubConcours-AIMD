@@ -14,17 +14,29 @@ $announcements = getLatestFeaturedAnnouncements(2);
 $ads = getLatestAds(2);
 ?>
 
+<section class="mb-10 rounded-2xl sm:rounded-3xl border border-base-content/10 bg-gradient-to-br from-primary/15 via-base-200/50 to-base-200/30 px-4 py-7 sm:px-8 sm:py-10 animate-fade-in [animation-fill-mode:both] min-w-0 max-w-full">
+  <p class="text-xs font-bold uppercase tracking-[0.18em] sm:tracking-[0.2em] text-primary/90 mb-3 break-words">Section informatique</p>
+  <h1 class="text-2xl min-[400px]:text-3xl sm:text-4xl font-bold tracking-tight text-base-content mb-3 leading-tight text-balance break-words">Tout voir en un coup d’œil</h1>
+  <p class="text-base text-base-content/70 max-w-2xl leading-relaxed break-words">
+    Concours du mois, actualités et annonces viennent d’une <strong class="text-base-content/90">base MySQL</strong>.
+    Publie ou supprime le contenu depuis l’<a href="admin/login.php" class="link link-primary font-semibold">espace rédaction</a> : prêt pour une démo ou un déploiement rapide.
+  </p>
+</section>
+
 <section class="my-6 animate-fade-in [animation-delay:80ms] [animation-fill-mode:both]">
-  <h1 class="text-xl font-bold mb-4">Concours du mois</h1>
+  <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+    <span class="h-2 w-2 rounded-full bg-primary shadow-[0_0_12px_rgba(79,124,255,0.8)]" aria-hidden="true"></span>
+    Concours du mois
+  </h2>
   <?php if ($contest): ?>
-    <article class="card lg:card-side bg-base-200/65 border border-base-content/10 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-      <figure class="lg:w-[min(100%,360px)] shrink-0 bg-base-300/40 p-3">
+    <article class="card lg:card-side bg-base-200/65 border border-base-content/10 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-x-clip min-w-0 max-w-full">
+      <figure class="w-full lg:w-[min(100%,360px)] shrink-0 bg-base-300/40 p-2 sm:p-3 min-w-0">
         <?php if (!empty($contest['image_path'])): ?>
-          <img class="h-40 lg:h-full min-h-[160px] w-full object-cover rounded-xl border border-base-content/10" src="<?= h($contest['image_path']) ?>" alt="">
+          <img class="h-40 lg:h-full min-h-[140px] w-full max-w-full object-cover rounded-xl border border-base-content/10" src="<?= h($contest['image_path']) ?>" alt="">
         <?php endif; ?>
       </figure>
-      <div class="card-body gap-3">
-        <h2 class="card-title text-2xl font-bold"><?= h($contest['title']) ?></h2>
+      <div class="card-body gap-3 min-w-0">
+        <h2 class="card-title text-xl min-[400px]:text-2xl font-bold break-words"><?= h($contest['title']) ?></h2>
         <p class="text-sm text-base-content/60">
           Publié le <?= h(date_format(new DateTime($contest['published_at']), 'd/m/Y')) ?>
         </p>
@@ -44,10 +56,10 @@ $ads = getLatestAds(2);
 
 <section class="my-8 grid gap-8 lg:grid-cols-2 animate-fade-in [animation-delay:120ms] [animation-fill-mode:both]">
   <div>
-    <h1 class="text-xl font-bold mb-4">Actualités à la une</h1>
+    <h2 class="text-xl font-bold mb-4">Actualités à la une</h2>
     <div class="grid gap-4 sm:grid-cols-2">
       <?php foreach ($news as $n): ?>
-        <article class="card bg-base-200/60 border border-base-content/10 overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+        <article class="card bg-base-200/60 border border-base-content/10 overflow-x-clip min-w-0 max-w-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
           <?php if (!empty($n['image_path'])): ?>
             <figure class="aspect-[16/10] w-full overflow-hidden bg-base-300/50">
               <img class="h-full w-full object-cover" src="<?= h($n['image_path']) ?>" alt="">
@@ -66,10 +78,10 @@ $ads = getLatestAds(2);
   </div>
 
   <div>
-    <h1 class="text-xl font-bold mb-4">Annonces récentes</h1>
+    <h2 class="text-xl font-bold mb-4">Annonces récentes</h2>
     <div class="grid gap-4 sm:grid-cols-2">
       <?php foreach ($announcements as $a): ?>
-        <article class="card bg-base-200/60 border border-base-content/10 overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+        <article class="card bg-base-200/60 border border-base-content/10 overflow-x-clip min-w-0 max-w-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
           <?php if (!empty($a['image_path'])): ?>
             <figure class="aspect-[16/10] w-full overflow-hidden bg-base-300/50">
               <img class="h-full w-full object-cover" src="<?= h($a['image_path']) ?>" alt="">
@@ -90,10 +102,10 @@ $ads = getLatestAds(2);
 </section>
 
 <section class="my-8 animate-fade-in [animation-delay:160ms] [animation-fill-mode:both]">
-  <h1 class="text-xl font-bold mb-4">Pubs récentes</h1>
+  <h2 class="text-xl font-bold mb-4">Pubs récentes</h2>
   <div class="grid gap-4 sm:grid-cols-2">
     <?php foreach ($ads as $ad): ?>
-      <article class="card bg-base-300/50 border border-base-content/10 overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+      <article class="card bg-base-300/50 border border-base-content/10 overflow-x-clip min-w-0 max-w-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
         <?php if (!empty($ad['image_path'])): ?>
           <figure class="aspect-[16/10] w-full overflow-hidden bg-base-300/50">
             <img class="h-full w-full object-cover" src="<?= h($ad['image_path']) ?>" alt="">

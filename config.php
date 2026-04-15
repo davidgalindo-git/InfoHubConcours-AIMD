@@ -5,7 +5,7 @@ declare(strict_types=1);
 // Configuration base de données
 // -----------------------------
 // Remplace ces valeurs par les tiennes.
-// Conseil : crée une base MySQL/MariaDB et importe database/schema.sql puis database/seed.sql.
+// Conseil : importe database/install.sql dans MySQL pour créer la base et les tables.
 
 // Sous XAMPP (Windows), prefere 127.0.0.1 si "localhost" provoque une erreur de connexion.
 const DB_HOST = '127.0.0.1';

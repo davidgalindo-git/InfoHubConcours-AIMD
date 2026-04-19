@@ -49,7 +49,10 @@ Les champs texte acceptent un **Markdown simple** (`lib/markdown.php`) : titres,
 
 Les images attendent un **chemin relatif** (ex. `assets/photo.jpg`).
 
-Pour le **concours du mois**, renseigner `contest_month` au format `YYYY-MM` sur une actualité dans l’admin.
+Pour le **concours du mois**:  
+   Renseigner `contest_month` au format `YYYY-MM` sur une actualité dans l’admin.  
+   Le dernier concours ajouté aux actualités est pris comme le concours du mois.  
+   Il est possible de les supprimer une fois passés.
 
 ---
 

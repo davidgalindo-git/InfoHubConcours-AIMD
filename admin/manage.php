@@ -212,6 +212,19 @@ require __DIR__ . '/header.php';
         <?php endif; ?>
       </div>
     </div>
+    <div class="card bg-base-200/40 border border-dashed border-primary/25 min-w-0">
+      <div class="card-body">
+        <h3 class="card-title text-base">Aide rapide</h3>
+        <p class="text-sm text-base-content/65">
+          Markdown simple dans les champs texte :
+          <ul>
+              <li>Titres : # Titre1, ## Titre2</li>
+              <li>Gras : **<strong>texte gras</strong>**</li>
+              <li>Liens : [titre_lien](url)</li>
+          </ul>
+        </p>
+      </div>
+    </div>
   </div>
 </section>
 

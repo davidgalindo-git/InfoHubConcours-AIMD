@@ -29,14 +29,6 @@ require_admin();
         <p class="text-sm text-base-content/65">Encarts avec lien optionnel vers une URL externe.</p>
       </div>
     </a>
-    <div class="card bg-base-200/40 border border-dashed border-primary/25 min-w-0">
-      <div class="card-body">
-        <h3 class="card-title text-base">Aide rapide</h3>
-        <p class="text-sm text-base-content/65">
-          Markdown simple dans les champs texte : <code>#</code> titres, <code>**gras**</code>, liens <code>[texte](url)</code>.
-        </p>
-      </div>
-    </div>
   </div>
 </section>
 

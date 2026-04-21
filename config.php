@@ -41,8 +41,8 @@ const ADMIN_PASSWORD = 'admin123';
 const APP_DEBUG = true;
 
 /**
- * URL de base du script courant (dossier contenant le fichier PHP appelé), avec slash final.
- * À utiliser dans <base href="..."> pour que les liens relatifs fonctionnent dans un sous-dossier (ex. /ImageProject/InfoHubConcours-AIMD/).
+ * URL de base du script courant (dossier du fichier PHP exécuté), avec slash final.
+ * Utile pour la balise base HTML depuis la page courante (y compris dans admin/).
  */
 function base_url(): string
 {
@@ -56,6 +56,34 @@ function base_url(): string
     $path = '/';
   } else {
     $path = rtrim($dir, '/') . '/';
+  }
+  return $scheme . '://' . $host . $path;
+}
+
+/**
+ * URL du dossier public où se trouve index.php (racine du projet), avec slash final.
+ * Quand tu es dans admin/, base_url() finit par /admin/ : utilise ceci pour les liens vers le site (inscription, etc.).
+ */
+function public_base_url(): string
+{
+  $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+  $scheme = $https ? 'https' : 'http';
+  $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+  $script = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+  $script = str_replace('\\', '/', (string)$script);
+  $dir = dirname($script);
+  if ($dir === '/' || $dir === '.' || $dir === '') {
+    $path = '/';
+  } else {
+    $path = rtrim($dir, '/');
+    if (str_ends_with(strtolower($path), '/admin')) {
+      $path = substr($path, 0, -strlen('/admin'));
+    }
+    if ($path === '' || $path === '/') {
+      $path = '/';
+    } else {
+      $path .= '/';
+    }
   }
   return $scheme . '://' . $host . $path;
 }

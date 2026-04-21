@@ -36,14 +36,16 @@ $items = getAnnouncementsList($category, $perPage, $offset);
   <?php else: ?>
     <div class="grid gap-4 sm:grid-cols-2">
       <?php foreach ($items as $a): ?>
-        <article class="card bg-base-200/60 border border-base-content/10 overflow-x-clip min-w-0 max-w-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
-          <?php if (!empty($a['image_path'])): ?>
-            <figure class="aspect-[16/10] w-full overflow-hidden bg-base-300/50">
-              <img class="h-full w-full object-cover" src="<?= h($a['image_path']) ?>" alt="">
-            </figure>
-          <?php endif; ?>
+        <article class="card bg-base-200/60 border border-base-content/10 overflow-hidden min-w-0 max-w-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+          <?php
+          $attachmentPath = !empty($a['image_path']) ? (string)$a['image_path'] : null;
+          require __DIR__ . '/../templates/partials/announcement_card_media.php';
+          ?>
           <div class="card-body p-4 gap-1">
-            <span class="badge badge-outline badge-sm font-semibold w-fit border-base-content/20"><?= h(ANNOUNCEMENT_CATEGORIES[$a['category_slug']] ?? $a['category_slug']) ?></span>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span class="badge badge-outline badge-sm font-semibold w-fit border-base-content/20"><?= h(ANNOUNCEMENT_CATEGORIES[$a['category_slug']] ?? $a['category_slug']) ?></span>
+              <?= announcement_author_html($a) ?>
+            </div>
             <h3 class="font-bold text-base leading-snug"><?= h($a['title']) ?></h3>
             <p class="text-xs text-base-content/55">Le <?= h(date_format(new DateTime($a['posted_at']), 'd/m/Y')) ?></p>
             <p class="text-sm text-base-content/70 line-clamp-4"><?= h(markdown_snippet((string)$a['content'], 170)) ?></p>

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/repositories.php';
 require_once __DIR__ . '/../lib/db.php';
+require_once __DIR__ . '/../lib/auth.php';
 require_once __DIR__ . '/auth.php';
 
 require_admin();
@@ -16,6 +17,7 @@ $error = null;
 $success = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $adminId = !empty($_SESSION['user']) ? (int)$_SESSION['user']['id'] : null;
   $action = (string)($_POST['action'] ?? '');
   if ($action === 'create') {
     $title = trim((string)($_POST['title'] ?? ''));
@@ -28,15 +30,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $is_featured = !empty($_POST['is_featured']) ? 1 : 0;
       $contest_month = trim((string)($_POST['contest_month'] ?? ''));
       $contest_month = $contest_month !== '' ? $contest_month : null;
-      db()->prepare(
-        'INSERT INTO news (title, content, image_path, is_featured, contest_month) VALUES (:t, :c, :img, :f, :cm)'
-      )->execute([
+      $newsCols = 'title, content, image_path, is_featured, contest_month';
+      $newsVals = ':t, :c, :img, :f, :cm';
+      $newsParams = [
         't' => $title,
         'c' => $content,
         'img' => $image_path !== '' ? $image_path : null,
         'f' => $is_featured,
         'cm' => $contest_month,
-      ]);
+      ];
+      if (db_table_has_column('news', 'created_by')) {
+        $newsCols .= ', created_by';
+        $newsVals .= ', :cb';
+        $newsParams['cb'] = $adminId;
+      }
+      db()->prepare("INSERT INTO news ($newsCols) VALUES ($newsVals)")->execute($newsParams);
       $success = 'Actualité créée.';
     } elseif ($type === 'announcements') {
       $category_slug = (string)($_POST['category_slug'] ?? 'autres');
@@ -45,12 +53,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
       $is_featured = !empty($_POST['is_featured']) ? 1 : 0;
       db()->prepare(
-        'INSERT INTO announcements (title, content, image_path, category_slug, is_featured) VALUES (:t, :c, :img, :cat, :f)'
+        'INSERT INTO announcements (title, content, image_path, category_slug, created_by, status, is_featured) VALUES (:t, :c, :img, :cat, :u, :s, :f)'
       )->execute([
         't' => $title,
         'c' => $content,
         'img' => $image_path !== '' ? $image_path : null,
         'cat' => $category_slug,
+        'u' => $adminId,
+        's' => 'visible',
         'f' => $is_featured,
       ]);
       $success = 'Annonce créée.';
@@ -58,12 +68,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $link_url = trim((string)($_POST['link_url'] ?? ''));
       $link_url = $link_url !== '' ? $link_url : null;
       db()->prepare(
-        'INSERT INTO ads (title, content, image_path, link_url) VALUES (:t, :c, :img, :l)'
+        'INSERT INTO ads (title, content, image_path, link_url, created_by, status) VALUES (:t, :c, :img, :l, :u, :s)'
       )->execute([
         't' => $title,
         'c' => $content,
         'img' => $image_path !== '' ? $image_path : null,
         'l' => $link_url,
+        'u' => $adminId,
+        's' => 'visible',
       ]);
       $success = 'Pub créée.';
     }
@@ -72,12 +84,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($deleteId > 0) {
       if ($type === 'news') {
         db()->prepare('DELETE FROM news WHERE id = :id')->execute(['id' => $deleteId]);
+        auth_log($adminId, 'delete_news', 'news', $deleteId, 'Suppression par admin');
         $success = 'Actualité supprimée.';
       } elseif ($type === 'announcements') {
         db()->prepare('DELETE FROM announcements WHERE id = :id')->execute(['id' => $deleteId]);
+        auth_log($adminId, 'delete_announcement', 'announcement', $deleteId, 'Suppression par admin');
         $success = 'Annonce supprimée.';
       } else {
         db()->prepare('DELETE FROM ads WHERE id = :id')->execute(['id' => $deleteId]);
+        auth_log($adminId, 'delete_ad', 'ad', $deleteId, 'Suppression par admin');
         $success = 'Pub supprimée.';
       }
     }
@@ -128,7 +143,7 @@ require __DIR__ . '/header.php';
     <div role="alert" class="alert alert-success mb-4 text-sm"><?= htmlspecialchars($success) ?></div>
   <?php endif; ?>
 
-  <div class="grid gap-6 lg:grid-cols-2 min-w-0">
+  <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] min-w-0">
     <div class="card bg-base-200/50 border border-base-content/10 min-w-0">
       <div class="card-body gap-3 min-w-0">
         <h2 class="card-title text-lg"><?= htmlspecialchars($L['create']) ?></h2>
@@ -179,10 +194,17 @@ require __DIR__ . '/header.php';
         <?php else: ?>
           <div class="flex flex-col gap-3">
             <?php foreach ($items as $row): ?>
+              <?php
+                $publicUrl = match ($type) {
+                  'news' => '../index.php?route=news_detail&id=' . (int)$row['id'],
+                  'announcements' => '../index.php?route=announcement_detail&id=' . (int)$row['id'],
+                  'ads' => '../index.php?route=ad_detail&id=' . (int)$row['id'],
+                };
+              ?>
               <div class="rounded-xl border border-base-content/10 bg-base-100/40 p-3">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <strong class="text-base-content"><?= htmlspecialchars((string)$row['title']) ?></strong>
+                    <a class="link link-primary font-semibold text-base-content break-words" href="<?= htmlspecialchars($publicUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" target="_blank" rel="noopener"><?= htmlspecialchars((string)$row['title']) ?></a>
                     <div class="text-xs font-bold text-base-content/55 mt-1.5">
                       <?php if ($type === 'news'): ?>
                         <?= !empty($row['is_featured']) ? 'À la une' : '—' ?>

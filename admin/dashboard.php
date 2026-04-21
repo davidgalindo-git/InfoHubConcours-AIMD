@@ -29,6 +29,18 @@ require_admin();
         <p class="text-sm text-base-content/65">Encarts avec lien optionnel vers une URL externe.</p>
       </div>
     </a>
+    <a class="card bg-base-200/60 border border-base-content/10 shadow-md hover:shadow-xl hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 no-underline text-inherit group min-w-0" href="users.php">
+      <div class="card-body">
+        <h3 class="card-title text-base group-hover:text-primary transition-colors"><span class="mr-1 opacity-90" aria-hidden="true">👤</span> Comptes utilisateurs</h3>
+        <p class="text-sm text-base-content/65">Recherche, suspensions temporisées, levée de suspension, suppression et journaux détaillés.</p>
+      </div>
+    </a>
+    <a class="card bg-base-200/60 border border-base-content/10 shadow-md hover:shadow-xl hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 no-underline text-inherit group min-w-0" href="moderation.php">
+      <div class="card-body">
+        <h3 class="card-title text-base group-hover:text-primary transition-colors"><span class="mr-1 opacity-90" aria-hidden="true">🛡️</span> Modération & logs</h3>
+        <p class="text-sm text-base-content/65">Masquer ou réactiver les annonces et consulter les logs liés à une annonce.</p>
+      </div>
+    </a>
   </div>
 </section>
 

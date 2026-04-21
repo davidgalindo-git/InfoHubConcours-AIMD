@@ -12,5 +12,6 @@
       </div>
     </div>
   </footer>
+  <?php require __DIR__ . '/partials/password_toggle_script.php'; ?>
 </body>
 </html>

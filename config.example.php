@@ -49,3 +49,28 @@ function base_url(): string
   }
   return $scheme . '://' . $host . $path;
 }
+
+/** Racine du site (index.php), pas le dossier admin/. */
+function public_base_url(): string
+{
+  $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+  $scheme = $https ? 'https' : 'http';
+  $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+  $script = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
+  $script = str_replace('\\', '/', (string)$script);
+  $dir = dirname($script);
+  if ($dir === '/' || $dir === '.' || $dir === '') {
+    $path = '/';
+  } else {
+    $path = rtrim($dir, '/');
+    if (str_ends_with(strtolower($path), '/admin')) {
+      $path = substr($path, 0, -strlen('/admin'));
+    }
+    if ($path === '' || $path === '/') {
+      $path = '/';
+    } else {
+      $path .= '/';
+    }
+  }
+  return $scheme . '://' . $host . $path;
+}

@@ -1,1 +1,4 @@
 node_modules/
+uploads/announcements/*
+!uploads/announcements/.gitkeep
+!uploads/announcements/.htaccess

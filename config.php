@@ -1,6 +1,46 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * Charge un fichier .env simple (KEY=VALUE) dans l'environnement PHP.
+ */
+function load_env_file(string $path): void
+{
+  if (!is_file($path) || !is_readable($path)) {
+    return;
+  }
+  $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+  if (!is_array($lines)) {
+    return;
+  }
+  foreach ($lines as $line) {
+    $line = trim((string)$line);
+    if ($line === '' || str_starts_with($line, '#')) {
+      continue;
+    }
+    $pos = strpos($line, '=');
+    if ($pos === false) {
+      continue;
+    }
+    $key = trim(substr($line, 0, $pos));
+    $val = trim(substr($line, $pos + 1));
+    if ($key === '') {
+      continue;
+    }
+    if (
+      (str_starts_with($val, '"') && str_ends_with($val, '"'))
+      || (str_starts_with($val, "'") && str_ends_with($val, "'"))
+    ) {
+      $val = substr($val, 1, -1);
+    }
+    putenv($key . '=' . $val);
+    $_ENV[$key] = $val;
+    $_SERVER[$key] = $val;
+  }
+}
+
+load_env_file(__DIR__ . '/.env');
+
 // -----------------------------
 // Configuration base de données
 // -----------------------------
@@ -36,6 +76,17 @@ if (session_status() === PHP_SESSION_NONE) {
 // Remplace par un mot de passe perso avant utilisation.
 // (Astuce : mets-le à la valeur aléatoire et ne le commit pas si tu partages le projet.)
 const ADMIN_PASSWORD = getenv('ADMIN_PASSWORD') ?: 'admin123';
+
+// -----------------------------
+// E-mails transactionnels
+// -----------------------------
+const SMTP_HOST = getenv('SMTP_HOST') ?: '';
+const SMTP_PORT = (int)(getenv('SMTP_PORT') ?: 587);
+const SMTP_USERNAME = getenv('SMTP_USERNAME') ?: '';
+const SMTP_PASSWORD = getenv('SMTP_PASSWORD') ?: (getenv('MAIL_SERVICE_API_KEY') ?: '');
+const SMTP_ENCRYPTION = getenv('SMTP_ENCRYPTION') ?: 'tls';
+const MAIL_FROM_ADDRESS = getenv('MAIL_FROM_ADDRESS') ?: 'no-reply@infohub.local';
+const MAIL_FROM_NAME = getenv('MAIL_FROM_NAME') ?: SITE_TITLE;
 
 // En local : true pour voir le détail des erreurs sur la page « Erreur serveur ». En production : false.
 const APP_DEBUG = true;

@@ -2,6 +2,9 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/auth_tokens.php';
+require_once __DIR__ . '/../lib/mailer.php';
+require_once __DIR__ . '/../lib/mail_templates.php';
 
 $inviteTokenGet = isset($_GET['invite']) ? trim((string)$_GET['invite']) : '';
 $inviteRow = $inviteTokenGet !== '' ? auth_fetch_valid_invite($inviteTokenGet) : null;
@@ -10,6 +13,7 @@ if ($inviteRow !== null && !auth_is_eduvaud_email((string)$inviteRow['email'])) 
 }
 
 $error = null;
+$success = null;
 $genericSignupError = 'Impossible de créer le compte avec ces informations. Si tu as déjà un compte, connecte-toi.';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -58,15 +62,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           ]);
           $id = (int)db()->lastInsertId();
           db()->prepare('UPDATE user_invites SET consumed_at = NOW() WHERE id = :id')->execute(['id' => (int)$inviteForPost['id']]);
-          $_SESSION['user'] = [
-            'id' => $id,
-            'full_name' => $fullName,
-            'email' => $email,
-            'role' => $role,
-            'status' => 'active',
-          ];
+          if (auth_users_has_email_verified_column()) {
+            db()->prepare('UPDATE users SET email_verified_at = NULL WHERE id = :id')->execute(['id' => $id]);
+          }
+          $verifyToken = auth_token_plain();
+          auth_store_email_verification_token($id, $verifyToken, 60 * 24);
+          $verifyUrl = public_base_url() . 'index.php?route=verify_email&token=' . rawurlencode($verifyToken);
+          $tpl = mail_tpl_verify_account($fullName, $verifyUrl);
+          mailer_send($email, $fullName, $tpl['subject'], $tpl['html'], $tpl['text']);
           auth_log($id, 'signup', 'user', $id, 'Création de compte (invitation)');
-          header('Location: index.php?route=home');
+          header('Location: index.php?route=sign_in&signup=ok');
           exit;
         }
       }
@@ -88,15 +93,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         's' => 'active',
       ]);
       $id = (int)db()->lastInsertId();
-      $_SESSION['user'] = [
-        'id' => $id,
-        'full_name' => $fullName,
-        'email' => $email,
-        'role' => $role,
-        'status' => 'active',
-      ];
+      if (auth_users_has_email_verified_column()) {
+        db()->prepare('UPDATE users SET email_verified_at = NULL WHERE id = :id')->execute(['id' => $id]);
+      }
+      $verifyToken = auth_token_plain();
+      auth_store_email_verification_token($id, $verifyToken, 60 * 24);
+      $verifyUrl = public_base_url() . 'index.php?route=verify_email&token=' . rawurlencode($verifyToken);
+      $tpl = mail_tpl_verify_account($fullName, $verifyUrl);
+      mailer_send($email, $fullName, $tpl['subject'], $tpl['html'], $tpl['text']);
       auth_log($id, 'signup', 'user', $id, 'Création de compte');
-      header('Location: index.php?route=home');
+      header('Location: index.php?route=sign_in&signup=ok');
       exit;
     }
   }
@@ -117,6 +123,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
         <?php if ($error): ?>
           <div role="alert" class="alert alert-error text-sm py-3"><?= h($error) ?></div>
+        <?php endif; ?>
+        <?php if ($success): ?>
+          <div role="alert" class="alert alert-success text-sm py-3"><?= h($success) ?></div>
         <?php endif; ?>
         <form method="post" class="flex flex-col gap-3 mt-1">
           <?php if ($inviteRow): ?>

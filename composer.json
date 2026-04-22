@@ -1,0 +1,8 @@
+{
+  "name": "infohub/app",
+  "description": "InfoHub platform",
+  "type": "project",
+  "require": {
+    "phpmailer/phpmailer": "^6.9"
+  }
+}

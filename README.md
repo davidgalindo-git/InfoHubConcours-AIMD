@@ -12,13 +12,17 @@ Auth intégrée avec rôles `user`, `collaborateur`, `admin` (mots de passe hash
 3. **Configuration** : copier `config.example.php` en **`config.php`**, puis renseigner :
    - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS` (fournis par l’hébergeur),
    - `ADMIN_PASSWORD` (mot de passe de connexion à l’admin).
-4. Ouvrir **`index.php?route=home`**.
+4. Exécuter les migrations auth/e-mail si la base existe déjà :
+   - **`database/migrate_auth_email_notifications.sql`** (tokens de vérification + reset + colonne `email_verified_at`).
+5. Installer la dépendance e-mail :
+   - `composer install` (PHPMailer).
+6. Ouvrir **`index.php?route=home`**.
    - Comptes utilisateurs: **Sign up / Sign in** — adresses **@eduvaud.ch** uniquement ; **invitations** admin idem (`admin/invites.php`, rôle collaborateur = pubs uniquement).
    - Rédaction/admin: **`admin/login.php`** (compte admin en base, ex. démo **`admin123`** après import) ou mot de passe legacy `ADMIN_PASSWORD` sans remplir l’email.
    - Base déjà créée avant: exécuter dans phpMyAdmin (onglet **SQL**) **`database/migrate_announcements_ads_columns.sql`** (colonnes `status` / `created_by` sur annonces et pubs — corrige l’erreur « Unknown column status »), puis **`database/migrate_eduvaud_invites.sql`** (invitations + compte admin démo si besoin).
-5. **Sécurité** : en production, mettre **`APP_DEBUG`** à **`false`** dans `config.php` (les visiteurs ne doivent pas voir les détails d’erreur PHP).
+7. **Sécurité** : en production, mettre **`APP_DEBUG`** à **`false`** dans `config.php` (les visiteurs ne doivent pas voir les détails d’erreur PHP).
 
-Aucune étape Node ni Composer n’est nécessaire en production : les styles sont dans `assets/app.css`.
+Configurer SMTP dans `.env` : `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_ENCRYPTION`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`.
 
 ---
 
@@ -28,6 +32,7 @@ Aucune étape Node ni Composer n’est nécessaire en production : les styles so
 - Le projet doit être servi par Apache **depuis le même dossier que `index.php`** (souvent `htdocs/.../InfoHubConcours-AIMD/`). Si tu travailles sur le Bureau et utilises XAMPP, **copie ou synchronise** le projet vers `htdocs` ou ouvre le dossier `htdocs` dans ton éditeur.
 - Sous Windows, si la connexion MySQL échoue, utiliser souvent `DB_HOST = '127.0.0.1'` et un mot de passe `root` adapté à ton MySQL (souvent vide sur XAMPP).
 - En cas d’erreur : avec **`APP_DEBUG = true`**, la page « Erreur serveur » affiche le message PDO / PHP.
+- Pour les e-mails transactionnels, ajouter les variables SMTP dans `.env` puis lancer `composer install`.
 
 Option **styles** : pour régénérer `assets/app.css` après modification des classes Tailwind dans les `.php` : `npm install` puis `npm run build:css`.
 

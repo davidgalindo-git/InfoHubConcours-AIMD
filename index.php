@@ -31,6 +31,9 @@ $allowedRoutes = [
   'ad_detail',
   'sign_in',
   'sign_up',
+  'verify_email',
+  'forgot_password',
+  'reset_password',
   'profile',
   'logout',
   'create_announcement',
@@ -119,6 +122,18 @@ try {
 
     case 'sign_up':
       require __DIR__ . '/pages/sign_up.php';
+      break;
+
+    case 'verify_email':
+      require __DIR__ . '/pages/verify_email.php';
+      break;
+
+    case 'forgot_password':
+      require __DIR__ . '/pages/forgot_password.php';
+      break;
+
+    case 'reset_password':
+      require __DIR__ . '/pages/reset_password.php';
       break;
 
     case 'profile':

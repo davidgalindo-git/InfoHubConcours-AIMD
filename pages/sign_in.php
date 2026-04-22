@@ -2,8 +2,18 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/auth_tokens.php';
+require_once __DIR__ . '/../lib/mailer.php';
+require_once __DIR__ . '/../lib/mail_templates.php';
 
 $error = null;
+$success = null;
+if ((string)($_GET['signup'] ?? '') === 'ok') {
+  $success = 'Compte créé. Vérifie ton e-mail avant de te connecter.';
+}
+if ((string)($_GET['reset'] ?? '') === 'ok') {
+  $success = 'Mot de passe mis à jour. Tu peux te connecter.';
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $email = strtolower(trim((string)($_POST['email'] ?? '')));
   $password = (string)($_POST['password'] ?? '');
@@ -17,7 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   } else {
     auth_expire_timed_suspensions_global();
 
-    $stmt = db()->prepare('SELECT ' . auth_user_row_select_columns() . ', password_hash FROM users WHERE email = :email LIMIT 1');
+    $userCols = auth_user_row_select_columns();
+    if (auth_users_has_email_verified_column()) {
+      $userCols .= ', email_verified_at';
+    }
+    $stmt = db()->prepare('SELECT ' . $userCols . ', password_hash FROM users WHERE email = :email LIMIT 1');
     $stmt->execute(['email' => $email]);
     $row = $stmt->fetch();
 
@@ -35,6 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       } else {
         $error = 'Ce compte est suspendu sans date de fin automatique. Contacte un administrateur.';
       }
+    } elseif (auth_users_has_email_verified_column() && empty($row['email_verified_at'])) {
+      $error = 'Compte non vérifié. Vérifie ton e-mail pour activer le compte.';
     } else {
       $sess = [
         'id' => (int)$row['id'],
@@ -53,6 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['admin_logged_in'] = true;
       }
       auth_log((int)$row['id'], 'signin', 'user', (int)$row['id'], 'Connexion');
+      $ip = (string)($_SERVER['REMOTE_ADDR'] ?? 'IP inconnue');
+      $when = date('d/m/Y H:i:s');
+      $tpl = mail_tpl_signin_alert((string)$row['full_name'], $when, $ip);
+      mailer_send((string)$row['email'], (string)$row['full_name'], $tpl['subject'], $tpl['html'], $tpl['text']);
       header('Location: index.php?route=home');
       exit;
     }
@@ -69,6 +89,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($error): ?>
           <div role="alert" class="alert alert-error text-sm py-3"><?= h($error) ?></div>
         <?php endif; ?>
+        <?php if ($success): ?>
+          <div role="alert" class="alert alert-success text-sm py-3"><?= h($success) ?></div>
+        <?php endif; ?>
         <form method="post" class="flex flex-col gap-3 mt-1">
           <input class="input input-bordered w-full min-h-11 bg-base-100/80 border-base-content/15 focus:border-primary transition-colors duration-200" type="email" name="email" placeholder="prenom.nom@eduvaud.ch" required autocomplete="username" pattern=".+@eduvaud\.ch$" title="Adresse @eduvaud.ch uniquement">
           <?php
@@ -81,6 +104,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <button class="btn btn-primary transition-transform duration-200 hover:scale-[1.01]" type="submit">Se connecter</button>
           <p class="text-center text-sm text-base-content/60 pt-1">
             <a class="link link-primary link-hover" href="index.php?route=sign_up">Pas de compte ? <span class="font-medium">Sign up</span></a>
+          </p>
+          <p class="text-center text-sm text-base-content/60">
+            <a class="link link-primary link-hover" href="index.php?route=forgot_password">Mot de passe oublié ?</a>
           </p>
         </form>
       </div>

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/auth.php';
 require_once __DIR__ . '/../lib/repositories.php';
+require_once __DIR__ . '/../lib/mailer.php';
+require_once __DIR__ . '/../lib/mail_templates.php';
 
 auth_require_login();
 
@@ -105,6 +107,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           'h' => password_hash($new, PASSWORD_DEFAULT),
           'id' => $uid,
         ]);
+        $tpl = mail_tpl_password_changed((string)$user['full_name'], date('d/m/Y H:i:s'));
+        mailer_send((string)$user['email'], (string)$user['full_name'], $tpl['subject'], $tpl['html'], $tpl['text']);
         auth_log($uid, 'profile_change_password', 'user', $uid, 'Changement de mot de passe');
         header('Location: index.php?route=profile&tab=compte&ok=pw');
         exit;

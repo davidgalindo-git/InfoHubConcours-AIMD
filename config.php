@@ -75,6 +75,18 @@ if (session_status() === PHP_SESSION_NONE) {
 // Admin & Debug
 // -----------------------------
 define('ADMIN_PASSWORD', get_env_var('ADMIN_PASSWORD', 'admin123'));
+
+// -----------------------------
+// E-mails transactionnels
+// -----------------------------
+const SMTP_HOST = getenv('SMTP_HOST') ?: '';
+const SMTP_PORT = (int)(getenv('SMTP_PORT') ?: 587);
+const SMTP_USERNAME = getenv('SMTP_USERNAME') ?: '';
+const SMTP_PASSWORD = getenv('SMTP_PASSWORD') ?: (getenv('MAIL_SERVICE_API_KEY') ?: '');
+const SMTP_ENCRYPTION = getenv('SMTP_ENCRYPTION') ?: 'tls';
+const MAIL_FROM_ADDRESS = getenv('MAIL_FROM_ADDRESS') ?: 'no-reply@infohub.local';
+const MAIL_FROM_NAME = getenv('MAIL_FROM_NAME') ?: SITE_TITLE;
+
 // En local : true pour voir le détail des erreurs sur la page « Erreur serveur ». En production : false.
 const APP_DEBUG = true;
 

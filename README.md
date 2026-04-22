@@ -60,7 +60,7 @@ Les images attendent un **chemin relatif** (ex. `assets/photo.jpg`).
 
 Pour le **concours du mois**:  
    Renseigner `contest_month` au format `YYYY-MM` sur une actualité dans l’admin.  
-   Le dernier concours ajouté aux actualités est pris comme le concours du mois.  
+   Le dernier concours ajouté aux actualités est pris comme le concours du mois automatiquement.
    Il est possible de les supprimer une fois passés.
 
 ---

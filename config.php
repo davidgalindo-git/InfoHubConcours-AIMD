@@ -8,11 +8,11 @@ declare(strict_types=1);
 // Conseil : importe database/install.sql dans MySQL pour créer la base et les tables.
 
 // Sous XAMPP (Windows), prefere 127.0.0.1 si "localhost" provoque une erreur de connexion.
-const DB_HOST = '127.0.0.1';
-const DB_PORT = 3306;
-const DB_NAME = 'infohub'; // <-- à adapter
-const DB_USER = 'root';    // <-- à adapter
-const DB_PASS = '';        // <-- à adapter
+const DB_HOST = getenv('DB_HOST') ?: '127.0.0.1';
+const DB_PORT = getenv('DB_PORT') ?: 3306;
+const DB_NAME = getenv('DB_NAME') ?: 'infohub'; 
+const DB_USER = getenv('DB_USER') ?: 'root';    
+const DB_PASS = getenv('DB_PASS') ?: '';        
 
 // -----------------------------
 // Configuration site
@@ -35,7 +35,7 @@ if (session_status() === PHP_SESSION_NONE) {
 // -----------------------------
 // Remplace par un mot de passe perso avant utilisation.
 // (Astuce : mets-le à la valeur aléatoire et ne le commit pas si tu partages le projet.)
-const ADMIN_PASSWORD = 'admin123';
+const ADMIN_PASSWORD = getenv('ADMIN_PASSWORD') ?: 'admin123';
 
 // En local : true pour voir le détail des erreurs sur la page « Erreur serveur ». En production : false.
 const APP_DEBUG = true;

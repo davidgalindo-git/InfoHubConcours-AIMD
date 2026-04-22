@@ -1,4 +1,17 @@
+# Logs
+logs
+*.log
+
+
 node_modules/
 uploads/announcements/*
 !uploads/announcements/.gitkeep
 !uploads/announcements/.htaccess
+
+#Secret files
+.env
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/*

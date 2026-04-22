@@ -34,7 +34,13 @@ $canEdit = $ad && auth_can_manage_ad($viewer, $ad);
         <div class="alert alert-warning text-sm">Cette pub n’est pas visible publiquement.</div>
       <?php endif; ?>
       <?php if (!empty($ad['image_path'])): ?>
-        <img class="w-full max-w-full max-h-[360px] object-cover rounded-xl border border-base-content/10" src="<?= h($ad['image_path']) ?>" alt="">
+        <?php if (announcement_attachment_is_pdf((string)$ad['image_path'])): ?>
+          <a class="btn btn-outline border-base-content/25 w-fit" href="<?= h((string)$ad['image_path']) ?>" target="_blank" rel="noopener noreferrer">Ouvrir le PDF joint</a>
+        <?php elseif (announcement_attachment_is_image((string)$ad['image_path'])): ?>
+          <img class="w-full max-w-full max-h-[360px] object-cover rounded-xl border border-base-content/10" src="<?= h((string)$ad['image_path']) ?>" alt="">
+        <?php else: ?>
+          <a class="link link-primary w-fit" href="<?= h((string)$ad['image_path']) ?>" target="_blank" rel="noopener noreferrer">Pièce jointe</a>
+        <?php endif; ?>
       <?php endif; ?>
       <h1 class="text-2xl font-bold leading-tight"><?= h($ad['title']) ?></h1>
       <p class="text-sm text-base-content/55">Le <?= h(date_format(new DateTime($ad['posted_at']), 'd/m/Y')) ?></p>

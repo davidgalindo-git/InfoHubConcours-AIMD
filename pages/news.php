@@ -28,7 +28,13 @@ $items = getNewsList($perPage, $offset);
         <article class="card bg-base-200/60 border border-base-content/10 overflow-x-clip min-w-0 max-w-full hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
           <?php if (!empty($n['image_path'])): ?>
             <figure class="aspect-[16/10] w-full overflow-hidden bg-base-300/50">
-              <img class="h-full w-full object-cover" src="<?= h($n['image_path']) ?>" alt="">
+              <?php if (announcement_attachment_is_pdf((string)$n['image_path'])): ?>
+                <div class="flex h-full w-full items-center justify-center bg-base-300/70 text-sm font-semibold text-base-content/70">PDF joint</div>
+              <?php elseif (announcement_attachment_is_image((string)$n['image_path'])): ?>
+                <img class="h-full w-full object-cover" src="<?= h($n['image_path']) ?>" alt="">
+              <?php else: ?>
+                <div class="flex h-full w-full items-center justify-center bg-base-300/70 text-sm font-semibold text-base-content/70">Fichier joint</div>
+              <?php endif; ?>
             </figure>
           <?php endif; ?>
           <div class="card-body p-4 gap-1">

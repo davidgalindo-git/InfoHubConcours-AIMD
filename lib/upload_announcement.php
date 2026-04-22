@@ -2,14 +2,21 @@
 declare(strict_types=1);
 
 /**
- * Enregistre une pièce jointe annonce (JPG, PNG ou PDF), avec contrôles MIME / contenu.
- * Si l’extension GD est disponible, les images sont ré-encodées (meilleure défense contre fichiers polymorphes).
- * Sans GD : copie stricte après MIME + getimagesize + contrôle du type IMAGETYPE_* sur le fichier final.
+ * Enregistre une pièce jointe (JPG, PNG ou PDF), avec contrôles MIME / contenu.
+ * Même logique partout ; `$bucket` choisit le sous-dossier (`announcements`, `ads` ou `news`).
  *
+ * @param 'announcements'|'ads'|'news' $bucket
  * @return array{ok:bool, relative_path?:string|null, error?:string}
  */
-function announcement_process_upload(?array $file): array
+function announcement_process_upload(?array $file, string $bucket = 'announcements'): array
 {
+  $subdir = match ($bucket) {
+    'ads' => 'ads',
+    'news' => 'news',
+    default => 'announcements',
+  };
+  $relBase = 'uploads/' . $subdir;
+
   if ($file === null || !isset($file['error']) || (int)$file['error'] === UPLOAD_ERR_NO_FILE) {
     return ['ok' => true, 'relative_path' => null];
   }
@@ -43,21 +50,22 @@ function announcement_process_upload(?array $file): array
     return ['ok' => false, 'error' => 'Le type du fichier ne correspond pas à une image JPG/PNG ou à un PDF.'];
   }
 
+  $destDir = dirname(__DIR__) . '/' . str_replace('/', DIRECTORY_SEPARATOR, $relBase);
+  if (!is_dir($destDir) && !@mkdir($destDir, 0755, true)) {
+    return ['ok' => false, 'error' => 'Impossible de créer le dossier de stockage.'];
+  }
+
   if ($ext === 'pdf') {
     $head = @file_get_contents($tmp, false, null, 0, 5);
     if ($head === false || strncmp($head, '%PDF-', 5) !== 0) {
       return ['ok' => false, 'error' => 'Fichier PDF invalide ou corrompu.'];
     }
-    $destDir = dirname(__DIR__) . '/uploads/announcements';
-    if (!is_dir($destDir) && !@mkdir($destDir, 0755, true)) {
-      return ['ok' => false, 'error' => 'Impossible de créer le dossier de stockage.'];
-    }
     $destName = bin2hex(random_bytes(16)) . '.pdf';
-    $destAbs = $destDir . '/' . $destName;
+    $destAbs = $destDir . DIRECTORY_SEPARATOR . $destName;
     if (!@move_uploaded_file($tmp, $destAbs)) {
       return ['ok' => false, 'error' => 'Échec de l’enregistrement du PDF.'];
     }
-    return ['ok' => true, 'relative_path' => 'uploads/announcements/' . $destName];
+    return ['ok' => true, 'relative_path' => $relBase . '/' . $destName];
   }
 
   $info = @getimagesize($tmp);
@@ -77,14 +85,9 @@ function announcement_process_upload(?array $file): array
     return ['ok' => false, 'error' => 'Le fichier ne correspond pas à une image JPEG.'];
   }
 
-  $destDir = dirname(__DIR__) . '/uploads/announcements';
-  if (!is_dir($destDir) && !@mkdir($destDir, 0755, true)) {
-    return ['ok' => false, 'error' => 'Impossible de créer le dossier de stockage.'];
-  }
-
   $outExt = ($ext === 'png') ? 'png' : 'jpg';
   $destName = bin2hex(random_bytes(16)) . '.' . $outExt;
-  $destAbs = $destDir . '/' . $destName;
+  $destAbs = $destDir . DIRECTORY_SEPARATOR . $destName;
 
   if (function_exists('imagecreatefromstring')) {
     $bin = @file_get_contents($tmp);
@@ -141,7 +144,7 @@ function announcement_process_upload(?array $file): array
     return ['ok' => false, 'error' => 'Contrôle final : fichier image invalide.'];
   }
 
-  return ['ok' => true, 'relative_path' => 'uploads/announcements/' . $destName];
+  return ['ok' => true, 'relative_path' => $relBase . '/' . $destName];
 }
 
 function announcement_safe_stored_path(?string $path): bool
@@ -149,7 +152,7 @@ function announcement_safe_stored_path(?string $path): bool
   if ($path === null || $path === '') {
     return true;
   }
-  return (bool)preg_match('#^(uploads/announcements/[a-zA-Z0-9._-]+|assets/[a-zA-Z0-9/_\\.-]+)$#', $path);
+  return (bool)preg_match('#^(uploads/(announcements|ads|news)/[a-zA-Z0-9._-]+|assets/[a-zA-Z0-9/_\\.-]+)$#', $path);
 }
 
 function announcement_delete_uploaded_file(?string $relativePath): void
@@ -157,7 +160,7 @@ function announcement_delete_uploaded_file(?string $relativePath): void
   if ($relativePath === null || $relativePath === '') {
     return;
   }
-  if (!preg_match('#^uploads/announcements/[a-f0-9]{32}\\.(jpg|png|pdf)$#i', $relativePath)) {
+  if (!preg_match('#^uploads/(announcements|ads|news)/[a-f0-9]{32}\\.(jpg|png|pdf)$#i', $relativePath)) {
     return;
   }
   $abs = dirname(__DIR__) . '/' . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath);

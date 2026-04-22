@@ -72,3 +72,20 @@ function mail_tpl_password_changed(string $fullName, string $when): array
   $text = "Ton mot de passe a été modifié le $when";
   return ['subject' => $subject, 'html' => $html, 'text' => $text];
 }
+
+function mail_tpl_invite_signup(string $inviteEmail, string $inviteUrl, string $role): array
+{
+  $subject = 'Invitation InfoHub';
+  $roleLabel = $role === 'collaborateur' ? 'collaborateur' : 'utilisateur';
+  $intro = 'Bonjour, une invitation a été créée pour l’adresse <strong>' . htmlspecialchars($inviteEmail, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</strong>.';
+  $html = mail_tpl_wrap(
+    'Invitation à rejoindre InfoHub',
+    $intro,
+    '<p>Utilise ce lien pour créer ton compte :</p>'
+    . '<p><a class="btn" href="' . htmlspecialchars($inviteUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">Créer mon compte</a></p>'
+    . '<p><strong>Rôle prévu :</strong> ' . htmlspecialchars($roleLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>'
+    . '<p class="muted">Ce lien d’invitation expire automatiquement.</p>'
+  );
+  $text = "Invitation InfoHub\nLien: $inviteUrl\nRole: $roleLabel";
+  return ['subject' => $subject, 'html' => $html, 'text' => $text];
+}

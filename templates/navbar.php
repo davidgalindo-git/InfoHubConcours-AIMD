@@ -10,7 +10,6 @@ $currentUser = $_SESSION['user'] ?? null;
 $role = is_array($currentUser) ? (string)($currentUser['role'] ?? '') : '';
 $canAnnNav = in_array($role, ['user', 'admin'], true);
 $canAdNav = in_array($role, ['collaborateur', 'admin'], true);
-$isAdminNav = !empty($_SESSION['admin_logged_in']) || $role === 'admin';
 $navProfileTab = preg_replace('/[^a-z]/', '', strtolower((string)($_GET['tab'] ?? 'compte')));
 if ($navProfileTab === '') {
   $navProfileTab = 'compte';
@@ -35,9 +34,6 @@ $navProfileSettingsActive = $current === 'profile' && $navProfileTab === 'compte
       <?php endif; ?>
       <?php if ($currentUser && $canAdNav): ?>
         <a class="btn btn-sm shrink-0 min-h-11 sm:min-h-8 btn-ghost border border-base-content/10 hover:border-primary/35 transition-all duration-200" href="index.php?route=create_ad">Créer pub</a>
-      <?php endif; ?>
-      <?php if ($isAdminNav): ?>
-        <a class="btn btn-sm shrink-0 min-h-11 sm:min-h-8 btn-ghost border border-base-content/10 hover:border-primary/35 transition-all duration-200" href="admin/dashboard.php">Admin</a>
       <?php endif; ?>
       <?php if ($currentUser): ?>
         <?php

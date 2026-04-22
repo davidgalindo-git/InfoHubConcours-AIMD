@@ -23,6 +23,11 @@ function auth_store_email_verification_token(int $userId, string $plainToken, in
   )->execute(['u' => $userId, 'h' => $hash, 'exp' => $expiresAt]);
 }
 
+function auth_clear_email_verification_tokens(int $userId): void
+{
+  db()->prepare('DELETE FROM email_verification_tokens WHERE user_id = :u')->execute(['u' => $userId]);
+}
+
 function auth_consume_email_verification_token(string $plainToken): ?array
 {
   $hash = auth_token_hash($plainToken);

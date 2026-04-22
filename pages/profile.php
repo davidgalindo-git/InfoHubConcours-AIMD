@@ -231,12 +231,6 @@ $tabQs = static function (string $t): string {
         <div class="divider my-2">Session</div>
         <p class="text-sm text-base-content/60 -mt-1">Déconnexion : tu quittes le site sur cet appareil.</p>
         <div class="flex flex-wrap gap-2">
-          <?php
-            $adminNavProfile = !empty($_SESSION['admin_logged_in']) || $role === 'admin';
-          ?>
-          <?php if ($adminNavProfile): ?>
-            <a class="btn btn-sm btn-ghost border border-base-content/15" href="admin/dashboard.php">Tableau de bord admin</a>
-          <?php endif; ?>
           <a class="btn btn-sm btn-outline border-error/40 text-error hover:bg-error/10" href="index.php?route=logout">Déconnexion</a>
         </div>
       </div>

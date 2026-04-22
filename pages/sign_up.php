@@ -15,6 +15,7 @@ if ($inviteRow !== null && !auth_is_eduvaud_email((string)$inviteRow['email'])) 
 $error = null;
 $success = null;
 $genericSignupError = 'Impossible de créer le compte avec ces informations. Si tu as déjà un compte, connecte-toi.';
+$canRecoverUnverified = auth_users_has_email_verified_column();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $fullName = trim((string)($_POST['full_name'] ?? ''));
@@ -46,10 +47,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       if (strtolower((string)$inviteForPost['email']) !== $email) {
         $error = 'Impossible de valider cette invitation. Vérifie le lien ou demande-en un nouveau à un administrateur.';
       } else {
-        $exists = db()->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
+        $existingCols = 'id, role';
+        if ($canRecoverUnverified) {
+          $existingCols .= ', email_verified_at';
+        }
+        $exists = db()->prepare('SELECT ' . $existingCols . ' FROM users WHERE email = :email LIMIT 1');
         $exists->execute(['email' => $email]);
-        if ($exists->fetch()) {
-          $error = $genericSignupError;
+        $existingUser = $exists->fetch();
+        if ($existingUser) {
+          $isUnverified = $canRecoverUnverified && empty($existingUser['email_verified_at']);
+          if ($isUnverified && (string)$existingUser['role'] !== 'admin') {
+            $existingId = (int)$existingUser['id'];
+            db()->prepare(
+              'UPDATE users SET full_name = :n, password_hash = :p, role = :r, status = :s, email_verified_at = NULL WHERE id = :id'
+            )->execute([
+              'n' => $fullName,
+              'p' => password_hash($password, PASSWORD_DEFAULT),
+              'r' => $role,
+              's' => 'active',
+              'id' => $existingId,
+            ]);
+            db()->prepare('UPDATE user_invites SET consumed_at = NOW() WHERE id = :id')->execute(['id' => (int)$inviteForPost['id']]);
+            auth_clear_email_verification_tokens($existingId);
+            $verifyToken = auth_token_plain();
+            auth_store_email_verification_token($existingId, $verifyToken, 60 * 24);
+            $verifyUrl = public_base_url() . 'index.php?route=verify_email&token=' . rawurlencode($verifyToken);
+            $tpl = mail_tpl_verify_account($fullName, $verifyUrl);
+            $mailSent = mailer_send($email, $fullName, $tpl['subject'], $tpl['html'], $tpl['text']);
+            if (!$mailSent) {
+              db()->prepare('UPDATE user_invites SET consumed_at = NULL WHERE id = :id')->execute(['id' => (int)$inviteForPost['id']]);
+              $reason = mailer_last_error();
+              $error = 'Le compte existe déjà (non vérifié), mais le mail de vérification n’a pas pu être renvoyé.';
+              if ($reason !== '') {
+                $error .= ' Détail: ' . $reason;
+              }
+            } else {
+              auth_log($existingId, 'signup_recover_unverified', 'user', $existingId, 'Réactivation compte non vérifié (invitation)');
+              header('Location: index.php?route=sign_in&signup=ok');
+              exit;
+            }
+          } else {
+            $error = $genericSignupError;
+          }
         } else {
           db()->prepare(
             'INSERT INTO users (full_name, email, password_hash, role, status) VALUES (:n, :e, :p, :r, :s)'
@@ -69,19 +108,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           auth_store_email_verification_token($id, $verifyToken, 60 * 24);
           $verifyUrl = public_base_url() . 'index.php?route=verify_email&token=' . rawurlencode($verifyToken);
           $tpl = mail_tpl_verify_account($fullName, $verifyUrl);
-          mailer_send($email, $fullName, $tpl['subject'], $tpl['html'], $tpl['text']);
-          auth_log($id, 'signup', 'user', $id, 'Création de compte (invitation)');
-          header('Location: index.php?route=sign_in&signup=ok');
-          exit;
+          $mailSent = mailer_send($email, $fullName, $tpl['subject'], $tpl['html'], $tpl['text']);
+          if (!$mailSent) {
+            auth_clear_email_verification_tokens($id);
+            db()->prepare('DELETE FROM users WHERE id = :id')->execute(['id' => $id]);
+            db()->prepare('UPDATE user_invites SET consumed_at = NULL WHERE id = :id')->execute(['id' => (int)$inviteForPost['id']]);
+            $reason = mailer_last_error();
+            $error = 'Impossible d’envoyer le mail de vérification. Le compte n’a pas été créé.';
+            if ($reason !== '') {
+              $error .= ' Détail: ' . $reason;
+            }
+          } else {
+            auth_log($id, 'signup', 'user', $id, 'Création de compte (invitation)');
+            header('Location: index.php?route=sign_in&signup=ok');
+            exit;
+          }
         }
       }
     }
   } else {
     $role = 'user';
-    $exists = db()->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
+    $existingCols = 'id, role';
+    if ($canRecoverUnverified) {
+      $existingCols .= ', email_verified_at';
+    }
+    $exists = db()->prepare('SELECT ' . $existingCols . ' FROM users WHERE email = :email LIMIT 1');
     $exists->execute(['email' => $email]);
-    if ($exists->fetch()) {
-      $error = $genericSignupError;
+    $existingUser = $exists->fetch();
+    if ($existingUser) {
+      $isUnverified = $canRecoverUnverified && empty($existingUser['email_verified_at']);
+      if ($isUnverified && (string)$existingUser['role'] !== 'admin') {
+        $existingId = (int)$existingUser['id'];
+        db()->prepare(
+          'UPDATE users SET full_name = :n, password_hash = :p, role = :r, status = :s, email_verified_at = NULL WHERE id = :id'
+        )->execute([
+          'n' => $fullName,
+          'p' => password_hash($password, PASSWORD_DEFAULT),
+          'r' => $role,
+          's' => 'active',
+          'id' => $existingId,
+        ]);
+        auth_clear_email_verification_tokens($existingId);
+        $verifyToken = auth_token_plain();
+        auth_store_email_verification_token($existingId, $verifyToken, 60 * 24);
+        $verifyUrl = public_base_url() . 'index.php?route=verify_email&token=' . rawurlencode($verifyToken);
+        $tpl = mail_tpl_verify_account($fullName, $verifyUrl);
+        $mailSent = mailer_send($email, $fullName, $tpl['subject'], $tpl['html'], $tpl['text']);
+        if (!$mailSent) {
+          $reason = mailer_last_error();
+          $error = 'Le compte existe déjà (non vérifié), mais le mail de vérification n’a pas pu être renvoyé.';
+          if ($reason !== '') {
+            $error .= ' Détail: ' . $reason;
+          }
+        } else {
+          auth_log($existingId, 'signup_recover_unverified', 'user', $existingId, 'Réactivation compte non vérifié');
+          header('Location: index.php?route=sign_in&signup=ok');
+          exit;
+        }
+      } else {
+        $error = $genericSignupError;
+      }
     } else {
       db()->prepare(
         'INSERT INTO users (full_name, email, password_hash, role, status) VALUES (:n, :e, :p, :r, :s)'
@@ -100,10 +186,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       auth_store_email_verification_token($id, $verifyToken, 60 * 24);
       $verifyUrl = public_base_url() . 'index.php?route=verify_email&token=' . rawurlencode($verifyToken);
       $tpl = mail_tpl_verify_account($fullName, $verifyUrl);
-      mailer_send($email, $fullName, $tpl['subject'], $tpl['html'], $tpl['text']);
-      auth_log($id, 'signup', 'user', $id, 'Création de compte');
-      header('Location: index.php?route=sign_in&signup=ok');
-      exit;
+      $mailSent = mailer_send($email, $fullName, $tpl['subject'], $tpl['html'], $tpl['text']);
+      if (!$mailSent) {
+        auth_clear_email_verification_tokens($id);
+        db()->prepare('DELETE FROM users WHERE id = :id')->execute(['id' => $id]);
+        $reason = mailer_last_error();
+        $error = 'Impossible d’envoyer le mail de vérification. Le compte n’a pas été créé.';
+        if ($reason !== '') {
+          $error .= ' Détail: ' . $reason;
+        }
+      } else {
+        auth_log($id, 'signup', 'user', $id, 'Création de compte');
+        header('Location: index.php?route=sign_in&signup=ok');
+        exit;
+      }
     }
   }
 }

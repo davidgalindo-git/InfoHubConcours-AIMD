@@ -4,6 +4,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/../lib/db.php';
 require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/mailer.php';
+require_once __DIR__ . '/../lib/mail_templates.php';
 require_admin();
 
 $error = null;
@@ -49,7 +51,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           ]);
           auth_log($adminId, 'create_invite', 'user_invite', (int)db()->lastInsertId(), $email);
           $newInviteLink = rtrim(public_base_url(), '/') . '/index.php?route=sign_up&invite=' . rawurlencode($token);
-          $success = 'Invitation créée. Copie le lien ci-dessous et envoie-le à la personne.';
+          $tpl = mail_tpl_invite_signup($email, $newInviteLink, $role);
+          $sent = mailer_send($email, $email, $tpl['subject'], $tpl['html'], $tpl['text']);
+          if ($sent) {
+            $success = 'Invitation créée et e-mail envoyé. Le lien reste disponible ci-dessous.';
+          } else {
+            $reason = mailer_last_error();
+            $error = 'Invitation créée, mais e-mail non envoyé.';
+            if ($reason !== '') {
+              $error .= ' Détail: ' . $reason;
+            }
+            $success = null;
+          }
         }
       }
     }

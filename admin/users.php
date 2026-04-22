@@ -7,7 +7,7 @@ require_once __DIR__ . '/../lib/repositories.php';
 
 require_admin();
 
-$adminId = !empty($_SESSION['user']['id']) ? (int)$_SESSION['user']['id'] : 0;
+$adminId = isset($_SESSION['user']['id']) ? (int)$_SESSION['user']['id'] : null;
 $schemaOk = auth_users_has_suspended_until_column();
 
 $q = trim((string)($_GET['q'] ?? ''));
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $action = (string)($_POST['action'] ?? '');
   $targetId = (int)($_POST['user_id'] ?? 0);
 
-  if ($targetId <= 0 || $adminId <= 0) {
+  if ($targetId <= 0) {
     $error = 'Requête invalide.';
   } else {
     $stmt = db()->prepare('SELECT id, role, status FROM users WHERE id = :id LIMIT 1');

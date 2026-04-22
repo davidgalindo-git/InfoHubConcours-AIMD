@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/repositories.php';
+require_once __DIR__ . '/../lib/upload_announcement.php';
 require_once __DIR__ . '/../lib/db.php';
 require_once __DIR__ . '/../lib/auth.php';
 require_once __DIR__ . '/auth.php';
@@ -41,158 +42,237 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($action === 'create') {
     $title = trim((string)($_POST['title'] ?? ''));
     $content = (string)($_POST['content'] ?? '');
-    $image_path = trim((string)($_POST['image_path'] ?? ''));
 
     if ($title === '' || $content === '') {
       $error = 'Titre et contenu sont requis.';
     } elseif ($type === 'news') {
-      $is_featured = !empty($_POST['is_featured']) ? 1 : 0;
-      $contest_month = trim((string)($_POST['contest_month'] ?? ''));
-      $contest_month = $contest_month !== '' ? $contest_month : null;
-      $newsCols = 'title, content, image_path, is_featured, contest_month';
-      $newsVals = ':t, :c, :img, :f, :cm';
-      $newsParams = [
-        't' => $title,
-        'c' => $content,
-        'img' => $image_path !== '' ? $image_path : null,
-        'f' => $is_featured,
-        'cm' => $contest_month,
-      ];
-      if (db_table_has_column('news', 'created_by')) {
-        $newsCols .= ', created_by';
-        $newsVals .= ', :cb';
-        $newsParams['cb'] = $adminId;
+      $upNews = announcement_process_upload($_FILES['attachment'] ?? null, 'news');
+      if (!$upNews['ok']) {
+        $error = (string)($upNews['error'] ?? 'Fichier refusé.');
+      } else {
+        $is_featured = !empty($_POST['is_featured']) ? 1 : 0;
+        $contest_month = trim((string)($_POST['contest_month'] ?? ''));
+        $contest_month = $contest_month !== '' ? $contest_month : null;
+        $imgN = trim((string)($upNews['relative_path'] ?? ''));
+        $newsCols = 'title, content, image_path, is_featured, contest_month';
+        $newsVals = ':t, :c, :img, :f, :cm';
+        $newsParams = [
+          't' => $title,
+          'c' => $content,
+          'img' => $imgN !== '' ? $imgN : null,
+          'f' => $is_featured,
+          'cm' => $contest_month,
+        ];
+        if (db_table_has_column('news', 'created_by')) {
+          $newsCols .= ', created_by';
+          $newsVals .= ', :cb';
+          $newsParams['cb'] = $adminId;
+        }
+        db()->prepare("INSERT INTO news ($newsCols) VALUES ($newsVals)")->execute($newsParams);
+        $success = 'Actualité créée.';
       }
-      db()->prepare("INSERT INTO news ($newsCols) VALUES ($newsVals)")->execute($newsParams);
-      $success = 'Actualité créée.';
     } elseif ($type === 'announcements') {
-      $category_slug = (string)($_POST['category_slug'] ?? 'autres');
-      if (!array_key_exists($category_slug, ANNOUNCEMENT_CATEGORIES)) {
-        $category_slug = 'autres';
+      $upAnn = announcement_process_upload($_FILES['attachment'] ?? null, 'announcements');
+      if (!$upAnn['ok']) {
+        $error = (string)($upAnn['error'] ?? 'Fichier refusé.');
+      } else {
+        $category_slug = (string)($_POST['category_slug'] ?? 'autres');
+        if (!array_key_exists($category_slug, ANNOUNCEMENT_CATEGORIES)) {
+          $category_slug = 'autres';
+        }
+        $is_featured = !empty($_POST['is_featured']) ? 1 : 0;
+        $imgA = trim((string)($upAnn['relative_path'] ?? ''));
+        $annParams = [
+          't' => $title,
+          'c' => $content,
+          'img' => $imgA !== '' ? $imgA : null,
+          'cat' => $category_slug,
+          'u' => $adminId,
+          's' => 'visible',
+          'f' => $is_featured,
+        ];
+        if ($hasAnnPrice) {
+          $annParams['price'] = trim((string)($_POST['price'] ?? '')) ?: null;
+        }
+        if ($hasAnnContact) {
+          $annParams['contact'] = trim((string)($_POST['contact_info'] ?? '')) ?: null;
+        }
+        db()->prepare(
+          'INSERT INTO announcements (title, content, image_path, category_slug, created_by, status, is_featured'
+          . ($hasAnnPrice ? ', price' : '')
+          . ($hasAnnContact ? ', contact_info' : '')
+          . ') VALUES (:t, :c, :img, :cat, :u, :s, :f'
+          . ($hasAnnPrice ? ', :price' : '')
+          . ($hasAnnContact ? ', :contact' : '')
+          . ')'
+        )->execute($annParams);
+        $success = 'Annonce créée.';
       }
-      $is_featured = !empty($_POST['is_featured']) ? 1 : 0;
-      $annParams = [
-        't' => $title,
-        'c' => $content,
-        'img' => $image_path !== '' ? $image_path : null,
-        'cat' => $category_slug,
-        'u' => $adminId,
-        's' => 'visible',
-        'f' => $is_featured,
-      ];
-      if ($hasAnnPrice) {
-        $annParams['price'] = trim((string)($_POST['price'] ?? '')) ?: null;
-      }
-      if ($hasAnnContact) {
-        $annParams['contact'] = trim((string)($_POST['contact_info'] ?? '')) ?: null;
-      }
-      db()->prepare(
-        'INSERT INTO announcements (title, content, image_path, category_slug, created_by, status, is_featured'
-        . ($hasAnnPrice ? ', price' : '')
-        . ($hasAnnContact ? ', contact_info' : '')
-        . ') VALUES (:t, :c, :img, :cat, :u, :s, :f'
-        . ($hasAnnPrice ? ', :price' : '')
-        . ($hasAnnContact ? ', :contact' : '')
-        . ')'
-      )->execute($annParams);
-      $success = 'Annonce créée.';
     } else {
-      $link_url = trim((string)($_POST['link_url'] ?? ''));
-      $link_url = $link_url !== '' ? $link_url : null;
-      $expiresAt = trim((string)($_POST['expires_at'] ?? ''));
-      $expiresAt = $expiresAt !== '' ? str_replace('T', ' ', $expiresAt) . ':00' : null;
-      $adsParams = [
-        't' => $title,
-        'c' => $content,
-        'img' => $image_path !== '' ? $image_path : null,
-        'l' => $link_url,
-        'u' => $adminId,
-        's' => 'visible',
-      ];
-      if ($hasAdsExpire) {
-        $adsParams['exp'] = $expiresAt;
+      $upAd = announcement_process_upload($_FILES['attachment'] ?? null, 'ads');
+      if (!$upAd['ok']) {
+        $error = (string)($upAd['error'] ?? 'Fichier refusé.');
+      } else {
+        $link_url = trim((string)($_POST['link_url'] ?? ''));
+        $link_url = $link_url !== '' ? $link_url : null;
+        $expiresAt = trim((string)($_POST['expires_at'] ?? ''));
+        $expiresAt = $expiresAt !== '' ? str_replace('T', ' ', $expiresAt) . ':00' : null;
+        $imgAd = trim((string)($upAd['relative_path'] ?? ''));
+        $adsParams = [
+          't' => $title,
+          'c' => $content,
+          'img' => $imgAd !== '' ? $imgAd : null,
+          'l' => $link_url,
+          'u' => $adminId,
+          's' => 'visible',
+        ];
+        if ($hasAdsExpire) {
+          $adsParams['exp'] = $expiresAt;
+        }
+        db()->prepare(
+          'INSERT INTO ads (title, content, image_path, link_url, created_by, status'
+          . ($hasAdsExpire ? ', expires_at' : '')
+          . ') VALUES (:t, :c, :img, :l, :u, :s'
+          . ($hasAdsExpire ? ', :exp' : '')
+          . ')'
+        )->execute($adsParams);
+        $success = 'Pub créée.';
       }
-      db()->prepare(
-        'INSERT INTO ads (title, content, image_path, link_url, created_by, status'
-        . ($hasAdsExpire ? ', expires_at' : '')
-        . ') VALUES (:t, :c, :img, :l, :u, :s'
-        . ($hasAdsExpire ? ', :exp' : '')
-        . ')'
-      )->execute($adsParams);
-      $success = 'Pub créée.';
     }
   } elseif ($action === 'update') {
     $updateId = (int)($_POST['id'] ?? 0);
     $title = trim((string)($_POST['title'] ?? ''));
     $content = (string)($_POST['content'] ?? '');
-    $image_path = trim((string)($_POST['image_path'] ?? ''));
     if ($updateId <= 0 || $title === '' || $content === '') {
       $error = 'Impossible de mettre a jour: champs requis manquants.';
     } elseif ($type === 'news') {
-      $contest_month = trim((string)($_POST['contest_month'] ?? ''));
-      $contest_month = $contest_month !== '' ? $contest_month : null;
-      updateNewsById($updateId, [
-        'title' => $title,
-        'content' => $content,
-        'image_path' => $image_path !== '' ? $image_path : null,
-        'is_featured' => !empty($_POST['is_featured']),
-        'contest_month' => $contest_month,
-      ]);
-      $success = 'Actualité mise a jour.';
-      auth_log($adminId, 'update_news', 'news', $updateId, 'Edition admin');
-      $editId = 0;
-      $editRow = null;
-    } elseif ($type === 'announcements') {
-      $category_slug = (string)($_POST['category_slug'] ?? 'autres');
-      if (!array_key_exists($category_slug, ANNOUNCEMENT_CATEGORIES)) {
-        $category_slug = 'autres';
+      $beforeNews = getNewsById($updateId);
+      $savedNewsImg = $beforeNews ? (string)($beforeNews['image_path'] ?? '') : '';
+      $upN = announcement_process_upload($_FILES['attachment'] ?? null, 'news');
+      if (!$upN['ok']) {
+        $error = (string)($upN['error'] ?? 'Fichier refusé.');
+      } else {
+        $newImg = $savedNewsImg !== '' ? $savedNewsImg : null;
+        if (!empty($_POST['remove_attachment'])) {
+          $newImg = null;
+        }
+        if (!empty($upN['relative_path'])) {
+          $newImg = $upN['relative_path'];
+        }
+        $contest_month = trim((string)($_POST['contest_month'] ?? ''));
+        $contest_month = $contest_month !== '' ? $contest_month : null;
+        updateNewsById($updateId, [
+          'title' => $title,
+          'content' => $content,
+          'image_path' => $newImg,
+          'is_featured' => !empty($_POST['is_featured']),
+          'contest_month' => $contest_month,
+        ]);
+        if ($savedNewsImg !== '' && $savedNewsImg !== (string)$newImg) {
+          announcement_delete_uploaded_file($savedNewsImg);
+        }
+        $success = 'Actualité mise a jour.';
+        auth_log($adminId, 'update_news', 'news', $updateId, 'Edition admin');
+        $editId = 0;
+        $editRow = null;
       }
-      updateAnnouncementById($updateId, [
-        'title' => $title,
-        'content' => $content,
-        'image_path' => $image_path !== '' ? $image_path : null,
-        'category_slug' => $category_slug,
-        'is_featured' => !empty($_POST['is_featured']),
-        'price' => trim((string)($_POST['price'] ?? '')) ?: null,
-        'contact_info' => trim((string)($_POST['contact_info'] ?? '')) ?: null,
-      ]);
-      $success = 'Annonce mise a jour.';
-      auth_log($adminId, 'update_announcement', 'announcement', $updateId, 'Edition admin');
-      $editId = 0;
-      $editRow = null;
+    } elseif ($type === 'announcements') {
+      $beforeAnn = getAnnouncementRowById($updateId);
+      $savedAnnImg = $beforeAnn ? (string)($beforeAnn['image_path'] ?? '') : '';
+      $upA = announcement_process_upload($_FILES['attachment'] ?? null, 'announcements');
+      if (!$upA['ok']) {
+        $error = (string)($upA['error'] ?? 'Fichier refusé.');
+      } else {
+        $newImg = $savedAnnImg !== '' ? $savedAnnImg : null;
+        if (!empty($_POST['remove_attachment'])) {
+          $newImg = null;
+        }
+        if (!empty($upA['relative_path'])) {
+          $newImg = $upA['relative_path'];
+        }
+        $category_slug = (string)($_POST['category_slug'] ?? 'autres');
+        if (!array_key_exists($category_slug, ANNOUNCEMENT_CATEGORIES)) {
+          $category_slug = 'autres';
+        }
+        updateAnnouncementById($updateId, [
+          'title' => $title,
+          'content' => $content,
+          'image_path' => $newImg,
+          'category_slug' => $category_slug,
+          'is_featured' => !empty($_POST['is_featured']),
+          'price' => trim((string)($_POST['price'] ?? '')) ?: null,
+          'contact_info' => trim((string)($_POST['contact_info'] ?? '')) ?: null,
+        ]);
+        if ($savedAnnImg !== '' && $savedAnnImg !== (string)$newImg) {
+          announcement_delete_uploaded_file($savedAnnImg);
+        }
+        $success = 'Annonce mise a jour.';
+        auth_log($adminId, 'update_announcement', 'announcement', $updateId, 'Edition admin');
+        $editId = 0;
+        $editRow = null;
+      }
     } else {
       $link_url = trim((string)($_POST['link_url'] ?? ''));
       $link_url = $link_url !== '' ? $link_url : null;
       if ($link_url !== null && !preg_match('/^https?:\/\/.+/i', $link_url)) {
         $error = 'Lien invalide (http/https).';
       } else {
-        $expiresAt = trim((string)($_POST['expires_at'] ?? ''));
-        $expiresAt = $expiresAt !== '' ? str_replace('T', ' ', $expiresAt) . ':00' : null;
-        updateAdById($updateId, [
-          'title' => $title,
-          'content' => $content,
-          'image_path' => $image_path !== '' ? $image_path : null,
-          'link_url' => $link_url,
-          'expires_at' => $expiresAt,
-        ]);
-        $success = 'Pub mise a jour.';
-        auth_log($adminId, 'update_ad', 'ad', $updateId, 'Edition admin');
-        $editId = 0;
-        $editRow = null;
+        $beforeAd = getAdRowById($updateId);
+        $savedAdImg = $beforeAd ? (string)($beforeAd['image_path'] ?? '') : '';
+        $upAd = announcement_process_upload($_FILES['attachment'] ?? null, 'ads');
+        if (!$upAd['ok']) {
+          $error = (string)($upAd['error'] ?? 'Fichier refusé.');
+        } else {
+          $newImg = $savedAdImg !== '' ? $savedAdImg : null;
+          if (!empty($_POST['remove_attachment'])) {
+            $newImg = null;
+          }
+          if (!empty($upAd['relative_path'])) {
+            $newImg = $upAd['relative_path'];
+          }
+          $expiresAt = trim((string)($_POST['expires_at'] ?? ''));
+          $expiresAt = $expiresAt !== '' ? str_replace('T', ' ', $expiresAt) . ':00' : null;
+          updateAdById($updateId, [
+            'title' => $title,
+            'content' => $content,
+            'image_path' => $newImg,
+            'link_url' => $link_url,
+            'expires_at' => $expiresAt,
+          ]);
+          if ($savedAdImg !== '' && $savedAdImg !== (string)$newImg) {
+            announcement_delete_uploaded_file($savedAdImg);
+          }
+          $success = 'Pub mise a jour.';
+          auth_log($adminId, 'update_ad', 'ad', $updateId, 'Edition admin');
+          $editId = 0;
+          $editRow = null;
+        }
       }
     }
   } elseif ($action === 'delete') {
     $deleteId = (int)($_POST['id'] ?? 0);
     if ($deleteId > 0) {
       if ($type === 'news') {
+        $delNews = getNewsById($deleteId);
+        if ($delNews) {
+          announcement_delete_uploaded_file((string)($delNews['image_path'] ?? '') ?: null);
+        }
         db()->prepare('DELETE FROM news WHERE id = :id')->execute(['id' => $deleteId]);
         auth_log($adminId, 'delete_news', 'news', $deleteId, 'Suppression par admin');
         $success = 'Actualité supprimée.';
       } elseif ($type === 'announcements') {
+        $delAnn = getAnnouncementRowById($deleteId);
+        if ($delAnn) {
+          announcement_delete_uploaded_file((string)($delAnn['image_path'] ?? '') ?: null);
+        }
         db()->prepare('DELETE FROM announcements WHERE id = :id')->execute(['id' => $deleteId]);
         auth_log($adminId, 'delete_announcement', 'announcement', $deleteId, 'Suppression par admin');
         $success = 'Annonce supprimée.';
       } else {
+        $delAd = getAdRowById($deleteId);
+        if ($delAd) {
+          announcement_delete_uploaded_file((string)($delAd['image_path'] ?? '') ?: null);
+        }
         db()->prepare('DELETE FROM ads WHERE id = :id')->execute(['id' => $deleteId]);
         auth_log($adminId, 'delete_ad', 'ad', $deleteId, 'Suppression par admin');
         $success = 'Pub supprimée.';
@@ -271,7 +351,7 @@ require __DIR__ . '/header.php';
     <div class="card bg-base-200/50 border border-base-content/10 min-w-0">
       <div class="card-body gap-3 min-w-0">
         <h2 class="card-title text-lg"><?= htmlspecialchars($formTitle) ?></h2>
-        <form method="post" action="manage.php?type=<?= htmlspecialchars($type, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" class="flex flex-col gap-3">
+        <form method="post" enctype="multipart/form-data" action="manage.php?type=<?= htmlspecialchars($type, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" class="flex flex-col gap-3">
           <input type="hidden" name="action" value="<?= $formAction ?>">
           <?php if ($isEditMode): ?>
             <input type="hidden" name="id" value="<?= (int)$editRow['id'] ?>">
@@ -280,9 +360,18 @@ require __DIR__ . '/header.php';
 
           <textarea name="content" placeholder="Contenu (Markdown simple)" rows="8" class="textarea textarea-bordered w-full bg-base-100/70 border-base-content/15 text-base leading-relaxed" required><?= htmlspecialchars($contentValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></textarea>
 
-          <input type="text" name="image_path" placeholder="image_path (ex: assets/x.jpg) optionnel"
-            class="input input-bordered w-full bg-base-100/70 border-base-content/15"
-            value="<?= htmlspecialchars($imageValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+          <p class="text-sm text-base-content/60 -mb-1">Image ou PDF (optionnel) : glisser-déposer ou cliquer sur la zone — <strong>JPG</strong>, <strong>PNG</strong> ou <strong>PDF</strong>, max 5 Mo (comme sur le site public).</p>
+          <input type="hidden" name="MAX_FILE_SIZE" value="5242880">
+          <?php if ($isEditMode && $imageValue !== ''): ?>
+            <label class="label cursor-pointer justify-start gap-2 py-1">
+              <input type="checkbox" name="remove_attachment" value="1" class="checkbox checkbox-sm checkbox-primary">
+              <span class="label-text text-sm">Retirer la pièce jointe actuelle</span>
+            </label>
+          <?php endif; ?>
+          <input type="file" id="manage-att-file" name="attachment" class="hidden" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf">
+          <div id="manage-att-dropzone" class="rounded-xl border-2 border-dashed border-base-content/25 bg-base-100/50 px-4 py-8 text-center text-sm text-base-content/65 cursor-pointer hover:border-primary/40 transition-colors">
+            <span data-fn class="font-medium text-base-content/80"><?= $isEditMode && $imageValue !== '' ? htmlspecialchars(basename($imageValue), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') : 'Glisser-déposer ou cliquer pour joindre JPG, PNG ou PDF' ?></span>
+          </div>
 
           <?php if ($type === 'news'): ?>
             <label class="label cursor-pointer justify-start gap-3 py-1">
@@ -316,7 +405,7 @@ require __DIR__ . '/header.php';
               <span class="label-text text-base-content/75 font-semibold text-sm">Marquer « à la une »</span>
             </label>
           <?php else: ?>
-            <input type="url" name="link_url" placeholder="Lien optionnel (https://...)" pattern="https?://.+"
+            <input type="url" name="link_url" placeholder="Lien optionnel (https://...)"
               class="input input-bordered w-full bg-base-100/70 border-base-content/15"
               value="<?= htmlspecialchars($linkValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
             <?php if ($hasAdsExpire): ?>
@@ -402,5 +491,27 @@ require __DIR__ . '/header.php';
     </div>
   </div>
 </section>
+
+<script>
+(function () {
+  var z = document.getElementById('manage-att-dropzone');
+  var inp = document.getElementById('manage-att-file');
+  if (!z || !inp) return;
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (ev) {
+    z.addEventListener(ev, function (e) { e.preventDefault(); e.stopPropagation(); });
+  });
+  z.addEventListener('dragover', function () { z.classList.add('border-primary', 'bg-primary/5'); });
+  z.addEventListener('dragleave', function () { z.classList.remove('border-primary', 'bg-primary/5'); });
+  z.addEventListener('drop', function (e) {
+    z.classList.remove('border-primary', 'bg-primary/5');
+    var f = e.dataTransfer.files[0];
+    if (!f) return;
+    inp.files = e.dataTransfer.files;
+    var el = z.querySelector('[data-fn]');
+    if (el) el.textContent = f.name;
+  });
+  z.addEventListener('click', function () { inp.click(); });
+})();
+</script>
 
 <?php require __DIR__ . '/footer.php'; ?>

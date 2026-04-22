@@ -1,6 +1,46 @@
 <?php
 declare(strict_types=1);
 
+// -------------------------------------------------------------
+// CHARGEMENT MANUEL DU FICHIER .ENV
+// -------------------------------------------------------------
+// Cette fonction permet à getenv() de fonctionner sans Composer.
+
+function loadEnv(string $path): void
+{
+    if (!file_exists($path)) {
+        return;
+    }
+
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        // On ignore les commentaires
+        if (str_starts_with(trim($line), '#')) continue;
+
+        // On cherche le signe "="
+        if (strpos($line, '=') !== false) {
+            list($name, $value) = explode('=', $line, 2);
+            $name = trim($name);
+            $value = trim($value, " \t\n\r\0\x0B\""); // Supprime espaces et guillemets
+
+            // On injecte dans l'environnement PHP
+            putenv(sprintf('%s=%s', $name, $value));
+            $_ENV[$name] = $value;
+            $_SERVER[$name] = $value;
+        }
+    }
+}
+
+// Charge le fichier .env situé dans le même dossier
+loadEnv(__DIR__ . '/.env');
+
+// Fonction de secours pour récupérer une variable d'env
+
+function get_env_var(string $key, $default = null) {
+    $val = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+    return ($val !== false && $val !== null) ? $val : $default;
+}
+
 // -----------------------------
 // Configuration base de données
 // -----------------------------
@@ -8,11 +48,12 @@ declare(strict_types=1);
 // Conseil : importe database/install.sql dans MySQL pour créer la base et les tables.
 
 // Sous XAMPP (Windows), prefere 127.0.0.1 si "localhost" provoque une erreur de connexion.
-const DB_HOST = getenv('DB_HOST') ?: '127.0.0.1';
-const DB_PORT = getenv('DB_PORT') ?: 3306;
-const DB_NAME = getenv('DB_NAME') ?: 'infohub'; 
-const DB_USER = getenv('DB_USER') ?: 'root';    
-const DB_PASS = getenv('DB_PASS') ?: '';        
+// Utilisation de define() au lieu de const pour permettre l'appel de fonction
+define('DB_HOST', get_env_var('DB_HOST', '127.0.0.1'));
+define('DB_PORT', (int)get_env_var('DB_PORT', 3306));
+define('DB_NAME', get_env_var('DB_NAME', 'infohub'));
+define('DB_USER', get_env_var('DB_USER', 'root'));
+define('DB_PASS', get_env_var('DB_PASS', ''));
 
 // -----------------------------
 // Configuration site
@@ -31,12 +72,9 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // -----------------------------
-// Admin (hackathon V1)
+// Admin & Debug
 // -----------------------------
-// Remplace par un mot de passe perso avant utilisation.
-// (Astuce : mets-le à la valeur aléatoire et ne le commit pas si tu partages le projet.)
-const ADMIN_PASSWORD = getenv('ADMIN_PASSWORD') ?: 'admin123';
-
+define('ADMIN_PASSWORD', get_env_var('ADMIN_PASSWORD', 'admin123'));
 // En local : true pour voir le détail des erreurs sur la page « Erreur serveur ». En production : false.
 const APP_DEBUG = true;
 

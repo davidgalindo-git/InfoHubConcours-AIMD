@@ -15,6 +15,25 @@ if (!in_array($type, ['news', 'announcements', 'ads'], true)) {
 
 $error = null;
 $success = null;
+$info = null;
+
+$hasAnnPrice = db_table_has_column('announcements', 'price');
+$hasAnnContact = db_table_has_column('announcements', 'contact_info');
+$hasAdsExpire = db_table_has_column('ads', 'expires_at');
+
+$editId = (int)($_GET['edit_id'] ?? 0);
+$editRow = null;
+if ($editId > 0) {
+  $editRow = match ($type) {
+    'news' => getNewsById($editId),
+    'announcements' => getAnnouncementRowById($editId),
+    'ads' => getAdRowById($editId),
+  };
+  if (!$editRow) {
+    $info = "L'element a modifier est introuvable.";
+    $editId = 0;
+  }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $adminId = !empty($_SESSION['user']) ? (int)$_SESSION['user']['id'] : null;
@@ -52,9 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $category_slug = 'autres';
       }
       $is_featured = !empty($_POST['is_featured']) ? 1 : 0;
-      db()->prepare(
-        'INSERT INTO announcements (title, content, image_path, category_slug, created_by, status, is_featured) VALUES (:t, :c, :img, :cat, :u, :s, :f)'
-      )->execute([
+      $annParams = [
         't' => $title,
         'c' => $content,
         'img' => $image_path !== '' ? $image_path : null,
@@ -62,22 +79,107 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'u' => $adminId,
         's' => 'visible',
         'f' => $is_featured,
-      ]);
+      ];
+      if ($hasAnnPrice) {
+        $annParams['price'] = trim((string)($_POST['price'] ?? '')) ?: null;
+      }
+      if ($hasAnnContact) {
+        $annParams['contact'] = trim((string)($_POST['contact_info'] ?? '')) ?: null;
+      }
+      db()->prepare(
+        'INSERT INTO announcements (title, content, image_path, category_slug, created_by, status, is_featured'
+        . ($hasAnnPrice ? ', price' : '')
+        . ($hasAnnContact ? ', contact_info' : '')
+        . ') VALUES (:t, :c, :img, :cat, :u, :s, :f'
+        . ($hasAnnPrice ? ', :price' : '')
+        . ($hasAnnContact ? ', :contact' : '')
+        . ')'
+      )->execute($annParams);
       $success = 'Annonce créée.';
     } else {
       $link_url = trim((string)($_POST['link_url'] ?? ''));
       $link_url = $link_url !== '' ? $link_url : null;
-      db()->prepare(
-        'INSERT INTO ads (title, content, image_path, link_url, created_by, status) VALUES (:t, :c, :img, :l, :u, :s)'
-      )->execute([
+      $expiresAt = trim((string)($_POST['expires_at'] ?? ''));
+      $expiresAt = $expiresAt !== '' ? str_replace('T', ' ', $expiresAt) . ':00' : null;
+      $adsParams = [
         't' => $title,
         'c' => $content,
         'img' => $image_path !== '' ? $image_path : null,
         'l' => $link_url,
         'u' => $adminId,
         's' => 'visible',
-      ]);
+      ];
+      if ($hasAdsExpire) {
+        $adsParams['exp'] = $expiresAt;
+      }
+      db()->prepare(
+        'INSERT INTO ads (title, content, image_path, link_url, created_by, status'
+        . ($hasAdsExpire ? ', expires_at' : '')
+        . ') VALUES (:t, :c, :img, :l, :u, :s'
+        . ($hasAdsExpire ? ', :exp' : '')
+        . ')'
+      )->execute($adsParams);
       $success = 'Pub créée.';
+    }
+  } elseif ($action === 'update') {
+    $updateId = (int)($_POST['id'] ?? 0);
+    $title = trim((string)($_POST['title'] ?? ''));
+    $content = (string)($_POST['content'] ?? '');
+    $image_path = trim((string)($_POST['image_path'] ?? ''));
+    if ($updateId <= 0 || $title === '' || $content === '') {
+      $error = 'Impossible de mettre a jour: champs requis manquants.';
+    } elseif ($type === 'news') {
+      $contest_month = trim((string)($_POST['contest_month'] ?? ''));
+      $contest_month = $contest_month !== '' ? $contest_month : null;
+      updateNewsById($updateId, [
+        'title' => $title,
+        'content' => $content,
+        'image_path' => $image_path !== '' ? $image_path : null,
+        'is_featured' => !empty($_POST['is_featured']),
+        'contest_month' => $contest_month,
+      ]);
+      $success = 'Actualité mise a jour.';
+      auth_log($adminId, 'update_news', 'news', $updateId, 'Edition admin');
+      $editId = 0;
+      $editRow = null;
+    } elseif ($type === 'announcements') {
+      $category_slug = (string)($_POST['category_slug'] ?? 'autres');
+      if (!array_key_exists($category_slug, ANNOUNCEMENT_CATEGORIES)) {
+        $category_slug = 'autres';
+      }
+      updateAnnouncementById($updateId, [
+        'title' => $title,
+        'content' => $content,
+        'image_path' => $image_path !== '' ? $image_path : null,
+        'category_slug' => $category_slug,
+        'is_featured' => !empty($_POST['is_featured']),
+        'price' => trim((string)($_POST['price'] ?? '')) ?: null,
+        'contact_info' => trim((string)($_POST['contact_info'] ?? '')) ?: null,
+      ]);
+      $success = 'Annonce mise a jour.';
+      auth_log($adminId, 'update_announcement', 'announcement', $updateId, 'Edition admin');
+      $editId = 0;
+      $editRow = null;
+    } else {
+      $link_url = trim((string)($_POST['link_url'] ?? ''));
+      $link_url = $link_url !== '' ? $link_url : null;
+      if ($link_url !== null && !preg_match('/^https?:\/\/.+/i', $link_url)) {
+        $error = 'Lien invalide (http/https).';
+      } else {
+        $expiresAt = trim((string)($_POST['expires_at'] ?? ''));
+        $expiresAt = $expiresAt !== '' ? str_replace('T', ' ', $expiresAt) . ':00' : null;
+        updateAdById($updateId, [
+          'title' => $title,
+          'content' => $content,
+          'image_path' => $image_path !== '' ? $image_path : null,
+          'link_url' => $link_url,
+          'expires_at' => $expiresAt,
+        ]);
+        $success = 'Pub mise a jour.';
+        auth_log($adminId, 'update_ad', 'ad', $updateId, 'Edition admin');
+        $editId = 0;
+        $editRow = null;
+      }
     }
   } elseif ($action === 'delete') {
     $deleteId = (int)($_POST['id'] ?? 0);
@@ -109,6 +211,7 @@ $labels = [
   'news' => [
     'page' => 'Gérer les actualités',
     'create' => 'Créer une actualité',
+    'edit' => 'Modifier une actualité',
     'list' => 'Dernières actualités',
     'del_confirm' => 'Supprimer cette actualité ?',
     'empty' => 'Aucune actualité.',
@@ -116,6 +219,7 @@ $labels = [
   'announcements' => [
     'page' => 'Gérer les annonces',
     'create' => 'Créer une annonce',
+    'edit' => 'Modifier une annonce',
     'list' => 'Dernières annonces',
     'del_confirm' => 'Supprimer cette annonce ?',
     'empty' => 'Aucune annonce.',
@@ -123,12 +227,29 @@ $labels = [
   'ads' => [
     'page' => 'Gérer les pubs',
     'create' => 'Créer une pub',
+    'edit' => 'Modifier une pub',
     'list' => 'Dernières pubs',
     'del_confirm' => 'Supprimer cette pub ?',
     'empty' => 'Aucune pub.',
   ],
 ];
 $L = $labels[$type];
+
+$isEditMode = $editRow !== null;
+$formAction = $isEditMode ? 'update' : 'create';
+$formTitle = $isEditMode ? $L['edit'] : $L['create'];
+$formButton = $isEditMode ? 'Enregistrer' : 'Créer';
+$titleValue = (string)($editRow['title'] ?? '');
+$contentValue = (string)($editRow['content'] ?? '');
+$imageValue = (string)($editRow['image_path'] ?? '');
+$featuredValue = !empty($editRow['is_featured']);
+$contestValue = (string)($editRow['contest_month'] ?? '');
+$categoryValue = (string)($editRow['category_slug'] ?? 'autres');
+$linkValue = (string)($editRow['link_url'] ?? '');
+$priceValue = (string)($editRow['price'] ?? '');
+$contactValue = (string)($editRow['contact_info'] ?? '');
+$expiresRaw = (string)($editRow['expires_at'] ?? '');
+$expiresValue = $expiresRaw !== '' ? date('Y-m-d\TH:i', strtotime($expiresRaw)) : '';
 
 require __DIR__ . '/header.php';
 ?>
@@ -139,6 +260,9 @@ require __DIR__ . '/header.php';
   <?php if ($error): ?>
     <div role="alert" class="alert alert-error mb-4 text-sm"><?= htmlspecialchars($error) ?></div>
   <?php endif; ?>
+  <?php if ($info): ?>
+    <div role="alert" class="alert alert-info mb-4 text-sm"><?= htmlspecialchars($info) ?></div>
+  <?php endif; ?>
   <?php if ($success): ?>
     <div role="alert" class="alert alert-success mb-4 text-sm"><?= htmlspecialchars($success) ?></div>
   <?php endif; ?>
@@ -146,42 +270,68 @@ require __DIR__ . '/header.php';
   <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] min-w-0">
     <div class="card bg-base-200/50 border border-base-content/10 min-w-0">
       <div class="card-body gap-3 min-w-0">
-        <h2 class="card-title text-lg"><?= htmlspecialchars($L['create']) ?></h2>
+        <h2 class="card-title text-lg"><?= htmlspecialchars($formTitle) ?></h2>
         <form method="post" action="manage.php?type=<?= htmlspecialchars($type, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" class="flex flex-col gap-3">
-          <input type="hidden" name="action" value="create">
-          <input class="input input-bordered w-full bg-base-100/70 border-base-content/15" type="text" name="title" placeholder="Titre" required>
+          <input type="hidden" name="action" value="<?= $formAction ?>">
+          <?php if ($isEditMode): ?>
+            <input type="hidden" name="id" value="<?= (int)$editRow['id'] ?>">
+          <?php endif; ?>
+          <input class="input input-bordered w-full bg-base-100/70 border-base-content/15" type="text" name="title" placeholder="Titre" required value="<?= htmlspecialchars($titleValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
 
-          <textarea name="content" placeholder="Contenu (Markdown simple)" rows="8" class="textarea textarea-bordered w-full bg-base-100/70 border-base-content/15 text-base leading-relaxed" required></textarea>
+          <textarea name="content" placeholder="Contenu (Markdown simple)" rows="8" class="textarea textarea-bordered w-full bg-base-100/70 border-base-content/15 text-base leading-relaxed" required><?= htmlspecialchars($contentValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></textarea>
 
           <input type="text" name="image_path" placeholder="image_path (ex: assets/x.jpg) optionnel"
-            class="input input-bordered w-full bg-base-100/70 border-base-content/15">
+            class="input input-bordered w-full bg-base-100/70 border-base-content/15"
+            value="<?= htmlspecialchars($imageValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
 
           <?php if ($type === 'news'): ?>
             <label class="label cursor-pointer justify-start gap-3 py-1">
-              <input type="checkbox" name="is_featured" value="1" class="checkbox checkbox-primary checkbox-sm">
+              <input type="checkbox" name="is_featured" value="1" class="checkbox checkbox-primary checkbox-sm" <?= $featuredValue ? 'checked' : '' ?>>
               <span class="label-text text-base-content/75 font-semibold text-sm">Marquer « à la une »</span>
             </label>
             <input type="text" name="contest_month" placeholder="concours : YYYY-MM (optionnel)"
-              class="input input-bordered w-full bg-base-100/70 border-base-content/15">
+              class="input input-bordered w-full bg-base-100/70 border-base-content/15"
+              value="<?= htmlspecialchars($contestValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
           <?php elseif ($type === 'announcements'): ?>
             <label class="form-control w-full">
               <span class="label-text text-sm font-bold text-base-content/65">Catégorie</span>
               <select name="category_slug" class="select select-bordered w-full bg-base-100/70 border-base-content/15">
                 <?php foreach (ANNOUNCEMENT_CATEGORIES as $slug => $label): ?>
-                  <option value="<?= htmlspecialchars($slug) ?>"><?= htmlspecialchars($label) ?></option>
+                  <option value="<?= htmlspecialchars($slug) ?>" <?= $categoryValue === $slug ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
                 <?php endforeach; ?>
               </select>
             </label>
+            <?php if ($hasAnnPrice): ?>
+              <input type="text" name="price" placeholder="Prix (optionnel)"
+                class="input input-bordered w-full bg-base-100/70 border-base-content/15"
+                value="<?= htmlspecialchars($priceValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+            <?php endif; ?>
+            <?php if ($hasAnnContact): ?>
+              <input type="text" name="contact_info" placeholder="Contact (optionnel)"
+                class="input input-bordered w-full bg-base-100/70 border-base-content/15"
+                value="<?= htmlspecialchars($contactValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+            <?php endif; ?>
             <label class="label cursor-pointer justify-start gap-3 py-1">
-              <input type="checkbox" name="is_featured" value="1" class="checkbox checkbox-primary checkbox-sm">
+              <input type="checkbox" name="is_featured" value="1" class="checkbox checkbox-primary checkbox-sm" <?= $featuredValue ? 'checked' : '' ?>>
               <span class="label-text text-base-content/75 font-semibold text-sm">Marquer « à la une »</span>
             </label>
           <?php else: ?>
             <input type="url" name="link_url" placeholder="Lien optionnel (https://...)" pattern="https?://.+"
-              class="input input-bordered w-full bg-base-100/70 border-base-content/15">
+              class="input input-bordered w-full bg-base-100/70 border-base-content/15"
+              value="<?= htmlspecialchars($linkValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+            <?php if ($hasAdsExpire): ?>
+              <input type="datetime-local" name="expires_at"
+                class="input input-bordered w-full bg-base-100/70 border-base-content/15"
+                value="<?= htmlspecialchars($expiresValue, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+            <?php endif; ?>
           <?php endif; ?>
 
-          <button class="btn btn-primary w-fit transition-transform duration-200 hover:scale-[1.02]" type="submit">Créer</button>
+          <div class="flex flex-wrap gap-2">
+            <button class="btn btn-primary w-fit transition-transform duration-200 hover:scale-[1.02]" type="submit"><?= htmlspecialchars($formButton) ?></button>
+            <?php if ($isEditMode): ?>
+              <a class="btn btn-ghost border border-base-content/15" href="manage.php?type=<?= htmlspecialchars($type, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">Annuler</a>
+            <?php endif; ?>
+          </div>
         </form>
       </div>
     </div>
@@ -225,7 +375,10 @@ require __DIR__ . '/header.php';
                   <form method="post" action="manage.php?type=<?= htmlspecialchars($type, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" onsubmit="return confirm('<?= htmlspecialchars($L['del_confirm'], ENT_QUOTES) ?>');">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="id" value="<?= (int)$row['id'] ?>">
-                    <button class="btn btn-sm btn-outline border-error/40 text-error hover:bg-error/10" type="submit">Supprimer</button>
+                    <div class="flex gap-2">
+                      <a class="btn btn-sm btn-outline border-base-content/25" href="manage.php?type=<?= htmlspecialchars($type, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>&edit_id=<?= (int)$row['id'] ?>">Modifier</a>
+                      <button class="btn btn-sm btn-outline border-error/40 text-error hover:bg-error/10" type="submit">Supprimer</button>
+                    </div>
                   </form>
                 </div>
               </div>

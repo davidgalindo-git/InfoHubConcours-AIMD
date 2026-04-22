@@ -313,9 +313,12 @@ $tabQs = static function (string $t): string {
         <?php else: ?>
           <ul class="divide-y divide-base-content/10 border border-base-content/10 rounded-xl overflow-hidden bg-base-100/40">
             <?php foreach ($myNews as $n): ?>
-              <li class="px-3 py-2.5 text-sm">
-                <a class="link link-primary font-semibold" href="index.php?route=news_detail&id=<?= (int)$n['id'] ?>"><?= h((string)$n['title']) ?></a>
-                <span class="text-xs text-base-content/45"> · <?= h(date_format(new DateTime((string)$n['published_at']), 'd/m/Y')) ?></span>
+              <li class="px-3 py-2.5 text-sm flex flex-wrap items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <a class="link link-primary font-semibold" href="index.php?route=news_detail&id=<?= (int)$n['id'] ?>"><?= h((string)$n['title']) ?></a>
+                  <span class="text-xs text-base-content/45"> · <?= h(date_format(new DateTime((string)$n['published_at']), 'd/m/Y')) ?></span>
+                </div>
+                <a class="btn btn-xs btn-outline border-base-content/20 shrink-0" href="admin/manage.php?type=news&edit_id=<?= (int)$n['id'] ?>">Modifier</a>
               </li>
             <?php endforeach; ?>
           </ul>

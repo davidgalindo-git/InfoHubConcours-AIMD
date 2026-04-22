@@ -338,3 +338,70 @@ function getAdRowById(int $id): ?array
   return $row ?: null;
 }
 
+/** Mise à jour d'une actualité existante. */
+function updateNewsById(int $id, array $data): bool
+{
+  $stmt = db()->prepare(
+    'UPDATE news
+     SET title = :t, content = :c, image_path = :img, is_featured = :f, contest_month = :cm
+     WHERE id = :id'
+  );
+  return $stmt->execute([
+    't' => (string)($data['title'] ?? ''),
+    'c' => (string)($data['content'] ?? ''),
+    'img' => $data['image_path'] ?? null,
+    'f' => !empty($data['is_featured']) ? 1 : 0,
+    'cm' => $data['contest_month'] ?? null,
+    'id' => $id,
+  ]);
+}
+
+/** Mise à jour d'une annonce existante (+ champs optionnels si présents en DB). */
+function updateAnnouncementById(int $id, array $data): bool
+{
+  $sets = ['title = :t', 'content = :c', 'image_path = :img', 'category_slug = :cat', 'is_featured = :f'];
+  $params = [
+    't' => (string)($data['title'] ?? ''),
+    'c' => (string)($data['content'] ?? ''),
+    'img' => $data['image_path'] ?? null,
+    'cat' => (string)($data['category_slug'] ?? 'autres'),
+    'f' => !empty($data['is_featured']) ? 1 : 0,
+    'id' => $id,
+  ];
+
+  if (db_table_has_column('announcements', 'price')) {
+    $sets[] = 'price = :price';
+    $params['price'] = $data['price'] ?? null;
+  }
+  if (db_table_has_column('announcements', 'contact_info')) {
+    $sets[] = 'contact_info = :contact';
+    $params['contact'] = $data['contact_info'] ?? null;
+  }
+
+  $sql = 'UPDATE announcements SET ' . implode(', ', $sets) . ' WHERE id = :id';
+  $stmt = db()->prepare($sql);
+  return $stmt->execute($params);
+}
+
+/** Mise à jour d'une pub existante (+ date d'expiration si présente en DB). */
+function updateAdById(int $id, array $data): bool
+{
+  $sets = ['title = :t', 'content = :c', 'image_path = :img', 'link_url = :l'];
+  $params = [
+    't' => (string)($data['title'] ?? ''),
+    'c' => (string)($data['content'] ?? ''),
+    'img' => $data['image_path'] ?? null,
+    'l' => $data['link_url'] ?? null,
+    'id' => $id,
+  ];
+
+  if (db_table_has_column('ads', 'expires_at')) {
+    $sets[] = 'expires_at = :exp';
+    $params['exp'] = $data['expires_at'] ?? null;
+  }
+
+  $sql = 'UPDATE ads SET ' . implode(', ', $sets) . ' WHERE id = :id';
+  $stmt = db()->prepare($sql);
+  return $stmt->execute($params);
+}
+

@@ -1,6 +1,7 @@
 # InfoHub — prototype web (PHP + MySQL)
 
-Site **dynamique**, **responsive**, alimenté par une base MySQL : **concours du mois**, **actualités**, **annonces**, **pubs**. Espace **admin** intégré pour créer et supprimer le contenu (sans framework imposé).
+Site **dynamique**, **responsive**, alimenté par une base MySQL : **concours du mois**, **actualités**, **annonces**, **pubs**.
+Auth intégrée avec rôles `user`, `collaborateur`, `admin` (mots de passe hashés), plus espace de modération admin.
 
 ---
 
@@ -11,7 +12,10 @@ Site **dynamique**, **responsive**, alimenté par une base MySQL : **concours du
 3. **Configuration** : copier `config.example.php` en **`config.php`**, puis renseigner :
    - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS` (fournis par l’hébergeur),
    - `ADMIN_PASSWORD` (mot de passe de connexion à l’admin).
-4. Ouvrir **`index.php?route=home`**. Rédaction : **`admin/login.php`**, puis onglets du menu ou **`admin/manage.php?type=news`** (annonces : `announcements`, pubs : `ads`).
+4. Ouvrir **`index.php?route=home`**.
+   - Comptes utilisateurs: **Sign up / Sign in** — adresses **@eduvaud.ch** uniquement ; **invitations** admin idem (`admin/invites.php`, rôle collaborateur = pubs uniquement).
+   - Rédaction/admin: **`admin/login.php`** (compte admin en base, ex. démo **`admin123`** après import) ou mot de passe legacy `ADMIN_PASSWORD` sans remplir l’email.
+   - Base déjà créée avant: exécuter dans phpMyAdmin (onglet **SQL**) **`database/migrate_announcements_ads_columns.sql`** (colonnes `status` / `created_by` sur annonces et pubs — corrige l’erreur « Unknown column status »), puis **`database/migrate_eduvaud_invites.sql`** (invitations + compte admin démo si besoin).
 5. **Sécurité** : en production, mettre **`APP_DEBUG`** à **`false`** dans `config.php` (les visiteurs ne doivent pas voir les détails d’erreur PHP).
 
 Aucune étape Node ni Composer n’est nécessaire en production : les styles sont dans `assets/app.css`.

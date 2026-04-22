@@ -32,7 +32,7 @@ $hClass = $err_style === 'danger' ? 'text-lg font-bold text-error mb-2' : 'text-
         </p>
       </div>
       <p class="mt-3 text-xs text-base-content/55">
-        Vérifie <code class="text-xs">config.php</code> (<code class="text-xs">DB_*</code>) et importe <code class="text-xs">database/install.sql</code> dans phpMyAdmin.
+        Vérifie <code class="text-xs">config.php</code> (<code class="text-xs">DB_*</code>). Si l’erreur parle de la colonne <code class="text-xs">status</code>, exécute dans phpMyAdmin (SQL) le fichier <code class="text-xs">database/migrate_announcements_ads_columns.sql</code> : les tables créées avant la mise à jour n’ont pas été modifiées par un simple réimport de <code class="text-xs">install.sql</code>.
       </p>
     <?php endif; ?>
   </div>
